@@ -183,10 +183,6 @@ msgstr "实时"
 msgid "Market"
 msgstr "排名"
 
-#: templates/site.html:39
-msgid "Exchange"
-msgstr "交易"
-
 #: templates/site.html:47
 msgid "Blocks"
 msgstr "账本"
