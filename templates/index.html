@@ -1,0 +1,414 @@
+{% extends "site.html" %}
+{% load humanize i18n static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+  {% block main %}
+    <div class="grid-container full">
+      <a name="Statistics"></a>
+      <div class="grid-x text-center">
+        <div class="cell">
+          <h3>{% trans "Statistics" %} ( {{ stat_ledger.timestamp|naturaltime }} )</h3>
+        </div>
+      </div> 
+    
+      <div class="grid-x">
+        <div class="large-12 cell">
+          <div class="callout small">
+            <div class="grid-x grid-margin-x small-up-2 medium-up-4 large-up-4">
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Circulation" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <h5 class="font-bold text-center">{{ stat_ledger.data.moac_circulation|intcomma }}</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "MoacMined" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.moac_mined|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_ledger_changelist' %}">{% trans "Height" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.ledgers|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_uncle_changelist' %}">{% trans "Uncles" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.uncles|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_transaction_changelist' %}">{% trans "Transactions" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.transactions|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=0">{% trans "Wallets" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.wallets|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=1">{% trans "Contracts" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.contracts|intcomma }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><a href="{% url 'public:moac_ledger_change' stat_ledger.data.ledgers|add:"-1" %}?is_contract__exact=1">{% trans "Difficulty" %}</a></h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.difficulty }} T</h5></div>
+                  </div>
+                </div>
+              </div>        
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Hashrate" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.hashrate }} T</h5></div>
+                  </div>
+                </div>
+              </div>        
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "BigPools" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_ledger.data.bigpools }}</h5></div>
+                  </div>
+                </div>
+              </div>        
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Tokens" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">&nbsp;</h5></div>
+                  </div>
+                </div>
+              </div>        
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Subchains" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">&nbsp;</h5></div>
+                  </div>
+                </div>
+              </div>        
+            </div>
+          </div>
+        </div>
+      </div>
+      <a name="Market"></a>
+      <div class="grid-x text-center">
+        <div class="cell">
+          <h3>CoinMarketCap ( {{ stat_coinmarket.timestamp|naturaltime}} )</h3>
+        </div>
+      </div> 
+      <div class="grid-x">
+        <div class="large-12 cell">
+          <div class="callout small">
+            <div class="grid-x grid-margin-x small-up-2 medium-up-4 large-up-4">
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Price USD" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_coinmarket.data.0.price_usd }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Price BTC" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_coinmarket.data.0.price_btc }}</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Change" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_coinmarket.data.0.percent_change_24h}}%</h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5>{% trans "Rank" %}</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center">{{ stat_coinmarket.data.0.rank }}</h5></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>     
+      </div>
+      <a name="Exchange"></a>
+      <div class="grid-x text-center">
+        <div class="cell">
+          <h3>{% trans "Exchanges" %}</h3>
+        </div>
+      </div> 
+      <div class="grid-x">
+        <div class="large-12 cell">
+          <div class="callout small">
+            <div class="grid-x grid-margin-x small-up-2 medium-up-4 large-up-4">
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> bit-z Z网</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.bit-z.pro/" target="_new">bit-z.pro</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> rfinex</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://rfinex.com/" target="_new">rfinex.com</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> coinbene 满币</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.coinbene.com/" target="_new">coinbene.com</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> coinw 币赢</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.coinw.me/" target="_new">coinw.me</a></h5></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>     
+      </div>
+
+      <a name="Resources"></a>
+      <div class="grid-x text-center">
+        <div class="cell">
+          <h2>{% trans "Resources" %}</h2>
+        </div>
+      </div> 
+      <div class="grid-x">
+        <div class="large-12 cell">
+          <div class="callout small">
+            <div class="grid-x grid-margin-x small-up-2 medium-up-4 large-up-4">
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://moac.io" target="_new">moac.io</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fa fa-link"></i> 中文</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="http://moacchina.com" target="_new">moacchina.com</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-github"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://github.com/MOACChain/moac-core" target="_new">MOACChain/moac-core</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-twitter"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://twitter.com/moac_io" target="_new">moac_io</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-linkedin"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.linkedin.com/company/moac-chain/" target="_new">moac-chain</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-reddit"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.reddit.com/r/MOAC/" target="_new">MOAC</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-telegram"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://t.me/moacblockchain" target="_new">moacblockchain</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-telegram"></i> 中文</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://t.me/moachina" target="_new">moacchina</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-medium"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://medium.com/@moac_io" target="_new">moac_io</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-facebook"></i> English</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="https://www.facebook.com/moacchain/" target="_new">moacchain</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-weixin"></i> 中文</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="#">MoacFoundation</a></h5></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cell">
+                <div class="card">
+                  <div class="card-divider align-center">
+                    <h5><i class="fab fa-qq"></i> 中文</h5>
+                  </div>
+                  <div class="card-section">
+                    <div><h5 class="font-bold text-center"><a href="#">479806716</a></h5></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>     
+      </div>
+
+      <div class="grid-x text-center">
+        <div class="cell">
+          <h2>{% trans "Charts" %}</h2>
+        </div>
+      </div> 
+      <div class="grid-x">
+        <div class="large-12 cell">
+          <div class="callout small">
+            <div class="grid-x grid-margin-x">
+              <div class="cell">
+                <div id="chart_balance"></div>
+              </div>
+              <div class="cell">
+                <div id="chart"></div>
+              </div>
+            </div>
+          </div>
+        </div>     
+      </div>
+    </div>
+  {% endblock %}
+    {% block extrajsscripts %}
+	{{ block.super }}
+    <script src="https://code.highcharts.com/highcharts.src.js"></script>
+    {% endblock %}
+    {% block extradjangoloads %}
+    {% load chartit %}
+    {{ chart_list|load_charts:"chart,chart_balance" }}
+    {% endblock %}

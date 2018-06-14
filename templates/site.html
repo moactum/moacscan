@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+      {% block htmlattrs %}lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}{% endblock %}
+  {% block head %}
+    {{ block.super }}
+    <meta name="Description" content="MOACscan allows you to explore and search the Ethereum blockchain for transactions, addresses, tokens, prices and other activities taking place on Ethereum (ETH)" />
+    <meta name="author" content="moac.guru" />
+    <meta name="keywords" content="MOAC, Sharding, Smart Contract, SubChain, MicroChain, explorer, JingtumTech, blockchain, crypto, currency, 墨客, 分层, 智能合约, 子链, 众链之母, 井通科技, 井底望天, 大国游戏" />
+    <title>{% block title %}MOACSCAN{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app20180605.css' %}">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/all.js" integrity="sha384-xymdQtn1n3lH2wcu0qhcdaOpQwyoarkgLVxC/wZ5q7h9gHtxICrpcaSUfygqZGOe" crossorigin="anonymous"></script>
+  {% endblock %}
+    {% block header %}
+    <!--<div class="top-bar-container" data-sticky-container>-->
+    <div class="top-bar-container">
+	  <!--
+      <div class="sticky sticky-topbar" data-sticky data-options="anchor: page; marginTop: 0; stickyOn: small;">
+	  -->
+       <!-- mobile nav bar -->
+       <div class="title-bar topbar-center-logo-mobile" data-responsive-toggle="topbar-center-logo" data-hide-for="medium">
+         <div class="title-bar-left">
+           <div class="title-bar-title"><a href="/"><img src="{% static 'images/moac_logo.png' %}" alt="MOACSCAN" /></a></div>
+         </div>
+         <div class="title-bar-right">
+           <button class="menu-icon" type="button" data-toggle="topbar-center-logo"></button>
+         </div>
+       </div>
+       <!-- /mobile nav bar -->
+       <!-- medium and larger nav bar -->
+       <div class="top-bar topbar-center-logo text-bold" id="topbar-center-logo">
+         <div class="top-bar-left">
+           <ul class="menu vertical medium-horizontal">
+             <li><a href="{% url 'live' %}">{% trans "LIVE" %}</a></li>
+             <li><a href="/#Resources">{% trans 'Resources' %}</a></li>
+             <li><a href="/#Market">{% trans 'Market' %}</a></li>
+             <li><a href="/#Exchange">{% trans 'Exchange' %}</a></li>
+           </ul>
+         </div>
+         <div class="top-bar-center">
+           <a href="/"><img src="{% static 'images/moac_logo.png' %}" alt="MOACSCAN" /></a>
+         </div>
+         <div class="top-bar-right">
+           <ul class="menu vertical medium-horizontal">
+             <li><a href="{% url 'public:moac_ledger_changelist' %}">{% trans 'Blocks' %}</a></li>
+             <li><a href="{% url 'public:moac_transaction_changelist' %}">{% trans 'Transactions' %}</a></li>
+             <li><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=0">{% trans 'Wallets' %}</a></li>
+             <li><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=1">{% trans 'Apps' %}</a></li>
+           </ul>
+         </div>
+       </div>
+       <!-- /medium and larger nav bar -->
+      <!--</div>-->
+    </div>
+    {% endblock %}
+    {% block search %}
+    <div class="grid-container full">
+      <div class="grid-x grid-margin-x text-center align-center-middle">
+        <div class="cell">
+          <div id="search-form-mobile" style="" class="">
+              <input id="txtSearchInputMobile" v-model="txtSearchInputMobile" v-on:keyup.enter="submit" type="text" placeholder="Search for Wallet, Tx Hash, Ledger Hash or Ledger height" class="form-control" style="text-align: center;" name="q" maxlength="100" title="Wallet, Tx Hash, Ledger Hash or Ledger height" />
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endblock %}
+    {% block extra %}
+      {% block jsscripts %}
+      <script src="{% static 'js/vendor/jquery.js' %}"></script>
+      <script src="{% static 'js/vendor/what-input.js' %}"></script>
+      <script src="{% static 'js/vendor/foundation.js' %}"></script>
+      <script src="{% static 'js/app20180605.js' %}"></script>
+      {% endblock %}
+      {% block extrajsscripts %}
+      <script type="text/javascript" src="/static/js/vue.min.js"></script>
+      <script>
+            $(function () {
+              var vmSearchMobile = new Vue({
+                  el: '#search-form-mobile',
+                  data: { txtSearchInputMobile: '' },
+                  methods: {
+                    submit: function() {
+                        location.assign(`/api/search/${this._data.txtSearchInputMobile.toLowerCase()}`);
+                    }
+                  }
+              });
+            });
+        </script>
+      {% endblock %}
+      {% block extradjangoloads %}
+      {% endblock %}
+    {% endblock %}

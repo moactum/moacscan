@@ -1,0 +1,6 @@
+Django==2.0.6
+django-cors-headers==2.2.0
+djangorestframework==3.8.2
+djangorestframework-simplejwt==3.2.3
+docutils==0.14
+psycopg2-binary==2.7.4
