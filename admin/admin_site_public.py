@@ -101,9 +101,9 @@ class TransactionAdmin(admin.ModelAdmin):
 		pass
 
 class AdminSite(admin.sites.AdminSite):
-	site_header = _('MOACscan')
-	site_title  = _('MOACscan')
-	index_title = _('MOACscan')
+	site_header = _('MOACGURU')
+	site_title  = _('MOACGURU')
+	index_title = _('MOACGURU')
 
 	def has_permission(self,request):
 		return True
