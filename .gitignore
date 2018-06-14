@@ -3,7 +3,7 @@
 # compiled output
 **/dist
 **/tmp
-**/locale
+**/*.mo
 **/out-tsc
 **/platforms
 **/*.pyc

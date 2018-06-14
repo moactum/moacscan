@@ -1,0 +1,201 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-14 15:52-0500\n"
+"PO-Revision-Date: 2018-06-08 06:40+0000\n"
+"Last-Translator: Brian Wang <singeeking@gmail.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/django/django/"
+"language/zh_CN/)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: admin/admin_site_public.py:104 admin/admin_site_public.py:105
+#: admin/admin_site_public.py:106
+msgid "MOACscan"
+msgstr "墨客浏览器"
+
+#: moac/models.py:18
+msgid "contract?"
+msgstr "合约?"
+
+#: moac/models.py:31
+msgid "address"
+msgstr "地址"
+
+#: moac/models.py:32
+msgid "addresses"
+msgstr "地址"
+
+#: moac/models.py:116
+msgid "minerpool"
+msgstr "矿池"
+
+#: moac/models.py:120
+msgid "ledger"
+msgstr "账本"
+
+#: moac/models.py:121
+msgid "ledgers"
+msgstr "账本"
+
+#: templates/admin/base.html:36
+msgid "Welcome,"
+msgstr ""
+
+#: templates/admin/base.html:43
+msgid "View site"
+msgstr ""
+
+#: templates/admin/base.html:48
+msgid "Documentation"
+msgstr ""
+
+#: templates/admin/base.html:52
+msgid "Change password"
+msgstr ""
+
+#: templates/admin/base.html:54
+msgid "Log out"
+msgstr ""
+
+#: templates/admin/base_site.html:3
+msgid "Django site admin"
+msgstr ""
+
+#: templates/admin/base_site.html:6
+msgid "Django administration"
+msgstr ""
+
+#: templates/admin/submit_line.html:5
+msgid "Save"
+msgstr ""
+
+#: templates/admin/submit_line.html:11
+msgid "Delete"
+msgstr ""
+
+#: templates/admin/submit_line.html:16
+msgid "Save as new"
+msgstr ""
+
+#: templates/admin/submit_line.html:21
+msgid "Save and add another"
+msgstr ""
+
+#: templates/admin/submit_line.html:26
+msgid "Save and continue editing"
+msgstr ""
+
+#: templates/index.html:10
+msgid "Statistics"
+msgstr "状态统计"
+
+#: templates/index.html:21 templates/live.html:26
+msgid "Circulation"
+msgstr "流通"
+
+#: templates/index.html:31 templates/live.html:38
+msgid "MoacMined"
+msgstr "挖矿"
+
+#: templates/index.html:41 templates/live.html:50
+msgid "Height"
+msgstr "高度"
+
+#: templates/index.html:51
+msgid "Uncles"
+msgstr "叔块"
+
+#: templates/index.html:61 templates/live.html:62 templates/site.html:48
+msgid "Transactions"
+msgstr "交易"
+
+#: templates/index.html:71 templates/live.html:74 templates/site.html:49
+msgid "Wallets"
+msgstr "钱包"
+
+#: templates/index.html:81 templates/live.html:86
+msgid "Contracts"
+msgstr "合约"
+
+#: templates/index.html:91 templates/live.html:98
+msgid "Difficulty"
+msgstr "难度"
+
+#: templates/index.html:101 templates/live.html:110
+msgid "Hashrate"
+msgstr "算力"
+
+#: templates/index.html:111
+msgid "BigPools"
+msgstr "大矿池"
+
+#: templates/index.html:121
+msgid "Tokens"
+msgstr "通证"
+
+#: templates/index.html:131
+msgid "Subchains"
+msgstr "子链"
+
+#: templates/index.html:155
+msgid "Price USD"
+msgstr "美元计价"
+
+#: templates/index.html:165
+msgid "Price BTC"
+msgstr "比特计价"
+
+#: templates/index.html:175
+msgid "Change"
+msgstr "变化"
+
+#: templates/index.html:185
+msgid "Rank"
+msgstr "排名"
+
+#: templates/index.html:199
+msgid "Exchanges"
+msgstr "交易所"
+
+#: templates/index.html:254 templates/site.html:37
+msgid "Resources"
+msgstr "资源"
+
+#: templates/index.html:388
+msgid "Charts"
+msgstr "图表"
+
+#: templates/site.html:36
+msgid "LIVE"
+msgstr "实时"
+
+#: templates/site.html:38
+msgid "Market"
+msgstr "排名"
+
+#: templates/site.html:39
+msgid "Exchange"
+msgstr "交易"
+
+#: templates/site.html:47
+msgid "Blocks"
+msgstr "账本"
+
+#: templates/site.html:50
+msgid "Apps"
+msgstr "应用"
+
+#: templates/site.html:100
+msgid "Donation"
+msgstr "打赏"
+

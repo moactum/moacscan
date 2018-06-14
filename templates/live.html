@@ -1,7 +1,20 @@
 {% extends "site.html" %}
 {% load humanize i18n static %}
   {% block main %}
-    <script> var ws_port = ''; if ( location.port ) { ws_port = ':3003'; }; var ws = new WebSocket(location.protocol.replace('http','ws') + '//' + location.hostname + ws_port + '/ws/moac'); </script>
+    <script>
+      var ws_proto = location.protocol.replace('http','ws');
+      var ws_port = '';
+      if ( location.port ) {
+        if ( /^localhost|^10|^172|^192.168|^172/.test(location.hostname) ) {
+          ws_port = ':3003';
+          ws_proto = 'ws:';
+        }
+        else {
+          ws_proto = 'wss:';
+        }
+      }
+      var ws = new WebSocket(ws_proto + '//' + location.hostname + ws_port + '/ws/moac');
+    </script>
     <div class="grid-container full">
       <a name="Statistics"></a>
       <div class="grid-x">
