@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-14 16:09-0500\n"
+"POT-Creation-Date: 2018-06-14 22:43-0500\n"
 "PO-Revision-Date: 2018-06-08 06:40+0000\n"
 "Last-Translator: Brian Wang <singeeking@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/django/django/"
@@ -191,7 +191,11 @@ msgstr "账本"
 msgid "Apps"
 msgstr "应用"
 
-#: templates/site.html:100
+#: templates/site.html:62
+msgid "ERC20 swapping to MOAC timing ooout"
+msgstr "代币 更换 原生墨客, 快..."
+
+#: templates/site.html:109
 msgid "Donation"
 msgstr "打赏"
 

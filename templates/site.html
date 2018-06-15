@@ -55,6 +55,15 @@
       <!--</div>-->
     </div>
     {% endblock %}
+    {% block announcements %}
+    <div class="grid-container full">
+      <div class="grid-x grid-margin-x text-center align-center-middle">
+        <div class="cell">
+			<h5><i class="fas fa-exclamation-triangle"></i>{% trans 'ERC20 swapping to MOAC timing ooout' %}<i class="fas fa-exclamation-triangle"></i></h5>
+        </div>
+      </div>
+    </div>
+    {% endblock %}
     {% block search %}
     <div class="grid-container full">
       <div class="grid-x grid-margin-x text-center align-center-middle">
@@ -104,12 +113,12 @@
           /**
           *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
           *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
-          /*
+		  ///*
           var disqus_config = function () {
-          this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-          this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+          this.page.url = 'https://moac.guru';
+          //this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
           };
-          */
+          //*/
           (function() { // DON'T EDIT BELOW THIS LINE
           var d = document, s = d.createElement('script');
           s.src = 'https://moacguru.disqus.com/embed.js';
