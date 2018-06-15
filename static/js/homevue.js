@@ -1,17 +1,24 @@
 function addMessage(list, msg) {
 	list.unshift(msg.data.block);
+	list.splice(10,10);
 	$('#message-list').parent().animate({
 		scrollTop: $('#message-list').height()
 	}, 1000);
 }
 function addTxs(list, msg) {
 	msg.data.block.transactions.forEach( tx => list.unshift(tx) );
+	list.splice(10,10);
 	$('#tx-list').parent().animate({
 		scrollTop: $('#tx-list').height()
 	}, 1000);
 }
+function addMoac(list, msg) {
+	list.unshift(msg.data.info_moac);
+	list.splice(10,10);
+}
 function addStat(list, msg) {
 	list.unshift(msg.data.info_stat);
+	list.splice(10,10);
 }
 
 $(function () {
@@ -42,7 +49,8 @@ $(function () {
 	var vmJsonStat = new Vue({
 		el: '#jsonstat',
 		data: {
-			info_stat: []
+			info_stat: [],
+			info_moac: []
 		}
 	});
 	window.vmJsonStat = vmJsonStat;
@@ -59,6 +67,9 @@ $(function () {
 			}
 			if (msg.data.info_stat) {
 				addStat(vmJsonStat.info_stat, msg);
+			}
+			if (msg.data.info_moac) {
+				addMoac(vmJsonStat.info_moac, msg);
 			}
 		}
 	};
