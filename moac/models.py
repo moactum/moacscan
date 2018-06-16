@@ -51,7 +51,7 @@ class Address(TimeStampedModel):
 
 	def update_code(self,url=''):
 		if not url:
-			url = "http://localhost:3003/api/address/%s/code" % self.address
+			url = "http://localhost:3000/api/address/%s/code" % self.address
 		try:
 			response = request.urlopen(url, timeout=30)
 			if response.status == 200:
@@ -70,7 +70,7 @@ class Address(TimeStampedModel):
 
 	def update_balance(self,url=''):
 		if not url:
-			url = "http://localhost:3003/api/address/%s" % self.address
+			url = "http://localhost:3000/api/address/%s" % self.address
 		try:
 			response = request.urlopen(url, timeout=30)
 			if response.status == 200:
@@ -88,7 +88,7 @@ class Address(TimeStampedModel):
 		if self.flag_balance:
 			pass
 		if not url:
-			url = "http://localhost:3003/api/address/%s" % self.address
+			url = "http://localhost:3000/api/address/%s" % self.address
 		try:
 			response = request.urlopen(url, timeout=30)
 			if response.status == 200:

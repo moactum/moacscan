@@ -4,9 +4,9 @@ import json
 import pprint
 
 DEBUG = False
-API_URL_ROOT = getattr(settings, 'API_CHAIN3', 'http://localhost:3003/api')
+API_URL_ROOT = getattr(settings, 'API_CHAIN3', 'http://localhost:3000/api')
 if not API_URL_ROOT:
-	API_URL_ROOT = 'http://localhost:3003/api'
+	API_URL_ROOT = 'http://localhost:3000/api'
 
 class WebAPI:
 	@staticmethod
