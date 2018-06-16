@@ -26,9 +26,9 @@
                     <h5>{% trans "Circulation" %}</h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.moac_circulation }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -38,9 +38,9 @@
                     <h5>{% trans "MoacMined" %}</h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.moac_mined }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -50,9 +50,9 @@
                     <h5><a href="{% url 'public:moac_ledger_changelist' %}">{% trans "Height" %}</a></h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_moac[0].block_current }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -62,9 +62,9 @@
                     <h5><a href="{% url 'public:moac_transaction_changelist' %}">{% trans "Transactions" %}</a></h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.transactions }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -74,9 +74,9 @@
                     <h5><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=0">{% trans "Wallets" %}</a></h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.wallets }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -86,9 +86,9 @@
                     <h5><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=1">{% trans "Contracts" %}</a></h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.contracts }}</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>
@@ -98,9 +98,9 @@
                     <h5><a href="{% url 'public:moac_ledger_change' stat_ledger.data.ledgers|add:"-1" %}?is_contract__exact=1">{% trans "Difficulty" %}</a></h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.difficulty }} T</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>        
@@ -110,9 +110,9 @@
                     <h5>{% trans "Hashrate" %}</h5>
                   </div>
                   <div class="card-section">
-				    {% verbatim %}
+            {% verbatim %}
                     <div><h5 class="font-bold text-center">{{ info_stat[0].data.hashrate }} T</h5></div>
-				    {% endverbatim %}
+            {% endverbatim %}
                   </div>
                 </div>
               </div>        
@@ -123,56 +123,57 @@
     </div>
   {% endblock %}
 
-			{% block footer %}
-			<div class="grid-x">
-				{% block main_row %}
-				<div class="cell">
-					<div>
-						<div class="grid-x grid-margin-x">
-							{% block main_block_tx %}
-							<div class="cell medium-6">
-									<div class="card">
-										<div class="card-divider align-center">
-											<h4><i class="fas fa-cubes"></i>&nbsp;Blocks</h4>
-										</div>
-                   						 {% verbatim %}
-                   						 <div id="scrollbar2" class="card-section overflow-scroll" style="height:30rem;">
-                   						   <div v-for="msg in messages">
-                   						     <p><span><a :href="'/api/block/' + msg.number">Block {{ msg.number }}</a></span>&nbsp;&nbsp;Time {{ msg.timestamp }}&nbsp;&nbsp;#Txs {{ msg.transactions.length }}</p>
-                   						   <p class="">{{ msg.hash | truncate }}</p>
-                   						   
-                   						   <p>Mined By <a :href="'/api/address/' + msg.miner" class='address-tag'>{{ msg.miner | truncate }}</a></p>
-                   						   <hr>
-                   						   </div>
-                   						 </div>
-                   						 {% endverbatim %}
-									</div>
-							</div>
-							<div class="cell medium-6">
-									<div class="card">
-										<div class="card-divider align-center">
-											<h4><i class="fas fa-list-alt"></i>&nbsp;Transactions</h4>
-										</div>
-                   						 {% verbatim %}
-                   						 <div id="scrollbar" class="card-section overflow-scroll" style="height:30rem;">
-                   						   <div v-for="tx in txs">
-                   						     <p><a :href="'/api/tx/' + tx.hash" title="Transaction Hash">{{ tx.hash | truncate }}</a></p>
-                   						     <p>From <a :href="'/api/address/' + tx.from">{{ tx.from | truncate }}</a> To <a :href="'/api/address/' + tx.to">{{ tx.to | truncate }}</a></p>
-                   						     <p>Amount {{ tx.value / 1e18 }} MOAC</p>
-                   						     <hr>
-                   						   </div>
-                   						 </div>
-                   						 {% endverbatim %}
-								</div>
-							</div>
-							{% endblock %}
-						</div>
-					</div>
-				</div>
-				{% endblock %}
-				<!-- /row -->
-			</div>
-			{% endblock %}
+      {% block footer %}
+      <div class="grid-x">
+        {% block main_row %}
+        <div class="cell">
+          <div>
+            <div class="grid-x grid-margin-x">
+              {% block main_block_tx %}
+              <div class="cell medium-6">
+                  <div class="card">
+                    <div class="card-divider align-center">
+                      <h4><i class="fas fa-cubes"></i>&nbsp;Blocks</h4>
+                    </div>
+                    {% verbatim %}
+                    <div id="scrollbar2" class="card-section overflow-scroll" style="min-height:30rem;">
+                      <div v-for="msg in messages">
+                        <p><span><a :href="'/api/block/' + msg.number">Block {{ msg.number }}</a></span>&nbsp;&nbsp;Time {{ msg.timestamp }}&nbsp;&nbsp;#Txs {{ msg.transactions.length }}</p>
+                      <p class="">{{ msg.hash | truncate }}</p>
+                      
+                      <p>Mined By <a :href="'/api/address/' + msg.miner" class='address-tag'>{{ msg.miner | truncate }}</a></p>
+                      <hr>
+                      </div>
+                    </div>
+                    {% endverbatim %}
+                  </div>
+              </div>
+              <div class="cell medium-6">
+                  <div class="card">
+                    <div class="card-divider align-center">
+                      <h4><i class="fas fa-list-alt"></i>&nbsp;Transactions</h4>
+                    </div>
+                    {% verbatim %}
+                    <div id="scrollbar" class="card-section overflow-scroll" style="min-height:30rem;">
+                      <div v-for="tx in txs">
+                        <p><a :href="'/api/tx/' + tx.hash" title="Transaction Hash">{{ tx.hash | truncate }}</a></p>
+                        <p>From <a :href="'/api/address/' + tx.from">{{ tx.from | truncate }}</a> To <a :href="'/api/address/' + tx.to">{{ tx.to | truncate }}</a></p>
+                        <p>Amount {{ tx.value / 1e18 }} MOAC</p>
+                        <hr>
+                      </div>
+                    </div>
+                    {% endverbatim %}
+                </div>
+              </div>
+              {% endblock %}
+            </div>
+          </div>
+        </div>
+        {% endblock %}
+        <!-- /row -->
+      </div>
+      {{ block.super }}
+      {% endblock %}
 
 
       {% block extrajsscripts %}

@@ -1,8 +1,25 @@
 from rest_framework import serializers 
-from jsonstore import models 
+from jsonstore import models as jsonstore_models
+from moac import models as moac_models
  
  
 class JsonStatSerializer(serializers.ModelSerializer): 
 	class Meta: 
-		model = models.JsonStat
+		model = jsonstore_models.JsonStat
 		fields = ("id","metric", "timestamp","data")
+class LedgerSerializer(serializers.ModelSerializer): 
+	class Meta: 
+		model = moac_models.Ledger
+		fields = ('__all__')
+class UncleSerializer(serializers.ModelSerializer): 
+	class Meta: 
+		model = moac_models.Uncle
+		fields = ('__all__')
+class TransactionSerializer(serializers.ModelSerializer): 
+	class Meta: 
+		model = moac_models.Transaction
+		fields = ('__all__')
+class AddressSerializer(serializers.ModelSerializer): 
+	class Meta: 
+		model = moac_models.Address
+		fields = ("id", "display", "is_contract", "balance", "timestamp")
