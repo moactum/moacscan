@@ -10,6 +10,7 @@ from django.db.models.signals import pre_save, post_save
 #from mptt.models import MPTTModel, TreeForeignKey
 from django.utils import timezone
 from urllib import request
+from django.db.models import Q
 from django.utils.translation import gettext as _
 
 class Address(TimeStampedModel):
@@ -18,7 +19,7 @@ class Address(TimeStampedModel):
 	is_contract = models.BooleanField(_("contract?"),default=False,editable=False)
 	code = models.TextField(default='',editable=False)
 	balance = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
-	timestamp = models.DateTimeField(blank=True,null=True,default=None,editable=False)
+#	timestamp = models.DateTimeField(blank=True,null=True,default=None,editable=False)
 #	flag_balance = models.BooleanField("balance synced", default=False,editable=False)
 #	balance_calculate = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
 #	timestamp_calculate = models.DateTimeField(blank=True,null=True,default=None,editable=False)
@@ -76,33 +77,15 @@ class Address(TimeStampedModel):
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				self.balance = result['balance_moac']
-				self.timestamp = timezone.now()
+				last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
+				if last_tx:
+					self.updated = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
 				self.save()
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
 		except Exception as e:
-			out = sys.stderr.write("... exception happend for %s/%s\n" % (self.id,index))
+			out = sys.stderr.write("... exception happend for %s/%s\n" % (self.address))
 			print(e)
-
-	def query_balance(self,url=''):
-		if self.flag_balance:
-			pass
-		if not url:
-			url = "http://localhost:3000/api/address/%s" % self.address
-		try:
-			response = request.urlopen(url, timeout=30)
-			if response.status == 200:
-				result = json.loads(response.read().decode())
-				self.balance_query = result['balance_moac']
-				self.timestamp_query = timezone.now()
-				self.save()
-				out = sys.stdout.write("... queried balance for %s\n" % (self.address))
-			else:
-				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
-		except Exception as e:
-			out = sys.stderr.write("... exception happend for %s/%s\n" % (self.id,index))
-			print(e)
-			time.sleep(3)
 
 class Ledger(models.Model):
 	hash = models.CharField(max_length=66,unique=True)

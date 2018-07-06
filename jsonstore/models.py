@@ -145,6 +145,9 @@ class JsonMoacLedger(models.Model):
 					uncle,created = Uncle.objects.get_or_create(hash=uncle_hash,ledger=ledger)
 					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,ledger=JsonMoacLedger.objects.get(hash=ledger.hash))
 					miner,created = Address.objects.get_or_create(address=jmu.data['miner'])
+					if created and ledger.timestamp:
+						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(ledger.timestamp))
+						miner.save()
 					addresses.add(miner)
 					uncle.miner = miner
 					uncle.number = jmu.data['number']
@@ -155,9 +158,15 @@ class JsonMoacLedger(models.Model):
 			timestamp=self.data['timestamp']
 			if self.id == 0:
 				timestamp = 1525064660
+				if created:
+					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+					miner.save()
 				ledger = Ledger(hash=self.hash, id=self.id, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
 				ledger.save()
 			else:
+				if created:
+					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+					miner.save()
 				ledger_new = True
 				duration = int(timestamp - Ledger.objects.get(id=self.id -1).timestamp)
 				num_txs = len(self.data['transactions'])
@@ -169,9 +178,15 @@ class JsonMoacLedger(models.Model):
 					for txr in self.data['transactions']:
 						sys.stdout.write("%s, " % txr['transactionIndex'])
 						tx_from, created = Address.objects.get_or_create(address=txr['from'])
+						if created:
+							tx_from.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+							tx_from.save()
 						addresses.add(tx_from)
 						if txr['to']:
 							tx_to, created = Address.objects.get_or_create(address=txr['to'])
+							if created:
+								tx_to.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+								tx_to.save()
 							addresses.add(tx_to)
 						else:
 							tx_to = None
@@ -182,6 +197,9 @@ class JsonMoacLedger(models.Model):
 					uncle,created = Uncle.objects.get_or_create(hash=uncle_hash,ledger=ledger)
 					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,ledger=JsonMoacLedger.objects.get(hash=ledger.hash))
 					miner,created = Address.objects.get_or_create(address=jmu.data['miner'])
+					if created:
+						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
+						miner.save()
 					addresses.add(miner)
 					uncle.miner = miner
 					uncle.number = jmu.data['number']

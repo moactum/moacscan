@@ -19,12 +19,12 @@ class JsonMoacLedgerAdmin(admin.ModelAdmin):
 
 	
 class AddressAdmin(admin.ModelAdmin):
-	list_display = ('display','balance','is_contract','timestamp','address')
-	readonly_fields = ('address','balance','timestamp', 'display','code')
+	list_display = ('display','balance','is_contract','created','updated','address')
+	readonly_fields = ('address','balance','is_contract','created','updated', 'display','code')
 	list_filter = ('is_contract',)
 	search_fields = ('=address','display')
-	ordering = ('-timestamp','-balance')
-	date_hierarchy = 'timestamp'
+	ordering = ('-updated','-balance')
+	date_hierarchy = 'updated'
 
 	def has_change_permission(self,request,obj=None):
 		#if obj:
