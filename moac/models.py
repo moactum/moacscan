@@ -14,6 +14,13 @@ from urllib import request
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
+class TokenType(models.Model):
+	name = models.CharField(max_length=16,unique=True)
+	class Meta:
+		pass
+	def __str__(self):
+		return self.name
+
 class Address(TimeStampedModel):
 	address = models.CharField(max_length=43,unique=True)
 	display = models.CharField(max_length=24,default='')
@@ -21,13 +28,6 @@ class Address(TimeStampedModel):
 	app_only = models.BooleanField(default=True,editable=False)
 	code = models.TextField(default='',editable=False)
 	balance = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
-#	timestamp = models.DateTimeField(blank=True,null=True,default=None,editable=False)
-#	flag_balance = models.BooleanField("balance synced", default=False,editable=False)
-#	balance_calculate = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
-#	timestamp_calculate = models.DateTimeField(blank=True,null=True,default=None,editable=False)
-#	balance_query = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
-#	timestamp_query = models.DateTimeField(blank=True,null=True,default=None,editable=False)
-
 
 	class Meta:
 		ordering = ('address', )
@@ -167,6 +167,18 @@ class Uncle(models.Model):
 	def __str__(self):
 		return self.hash
 		#return "%s:%s" % (self.number,self.hash)
+
+class Token(TimeStampedModel):
+	symbol = models.CharField(max_length=8,db_index=True)
+	name = models.CharField(max_length=32,default='token name')
+	token_type = models.ForeignKey(TokenType,on_delete=models.PROTECT,editable=False)
+	total_supply = models.DecimalField(max_digits=30,decimal_places=2,editable=False,default=Decimal(0))
+	address = models.OneToOneField(Address,null=True,default=None,on_delete=models.SET_NULL,editable=False)
+	owners = models.ManyToManyField(Address,related_name='owners',editable=False)
+	class Meta:
+		unique_together = ('symbol', 'token_type')
+	def __str__(self):
+		return self.symbol
 
 class StatLedger(models.Model):
 	date = models.DateField(editable=False,unique=True)
