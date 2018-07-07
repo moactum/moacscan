@@ -43,13 +43,19 @@ class JsonStat(models.Model):
 			self.data['moac_mined'] = 2 * (self.data['ledgers'] + self.data['uncles'])
 			self.data['moac_circulation'] = int(Address.objects.aggregate(Sum('balance'))['balance__sum'])
 			self.data['uncle_ratio'] = int(100 * self.data['uncles'] / self.data['ledgers'])
-			self.data['wallets'] = Address.objects.filter(is_contract=False).count()
+			self.data['wallets_apponly'] = Address.objects.filter(app_only=True).count()
+			self.data['wallets_mainnet'] = Address.objects.filter(app_only=False).filter(is_contract=False).count()
+			self.data['wallets'] = self.data['wallets_apponly'] + self.data['wallets_mainnet']
 			self.data['contracts'] = Address.objects.filter(is_contract=True).count()
 			self.data['transactions'] = Transaction.objects.count()
 			if self.data['ledgers'] > 100:
 				self.data['difficulty'] = 10 * Ledger.objects.get(id=self.data['ledgers'] - 1).difficulty // hashrate_tera / 10
 				self.data['bigpools'] = Address.objects.annotate(Count('ledger')).filter(ledger__count__gt=10000).count()
 				self.data['hashrate'] = 10 * Ledger.objects.filter(id__gte=self.data['ledgers'] - hashrate_average_sample).filter(id__lt=self.data['ledgers']).aggregate(Sum('difficulty'))['difficulty__sum'] // hashrate_tera // (Ledger.objects.get(id=self.data['ledgers'] - 1).timestamp - Ledger.objects.get(id=self.data['ledgers'] - hashrate_average_sample - 1).timestamp) / 10
+			else:
+				self.data['difficulty'] = 0
+				self.data['bigpools'] = 0
+				self.data['hashrate'] = 0
 			self.save()
 		else:
 			pass
@@ -66,7 +72,6 @@ class JsonJingtumLedger(models.Model):
 
 	@classmethod
 	def sync(cls,hash):
-		url = "http://state.jingtum.com/query/ledger/%s" % hash
 		done = False
 		try:
 			ledger = cls.objects.get(hash=hash)
@@ -75,7 +80,7 @@ class JsonJingtumLedger(models.Model):
 			pass
 		while not done:
 			try:
-				response = request.urlopen(url,timeout=90)
+				response = common.WebAPI.get("query/ledger/{}".format(hash), url='http://state.jingtum.com/',timeout=90)
 				if response.status == 200:
 					result = json.loads(response.read().decode())
 					summary = result['data']['data']['summary']
@@ -147,6 +152,10 @@ class JsonMoacLedger(models.Model):
 					miner,created = Address.objects.get_or_create(address=jmu.data['miner'])
 					if created and ledger.timestamp:
 						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(ledger.timestamp))
+						miner.app_only = False
+						miner.save()
+					if miner.app_only:
+						miner.app_only = False
 						miner.save()
 					addresses.add(miner)
 					uncle.miner = miner
@@ -160,12 +169,20 @@ class JsonMoacLedger(models.Model):
 				timestamp = 1525064660
 				if created:
 					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+					miner.app_only = False
+					miner.save()
+				if miner.app_only:
+					miner.app_only = False
 					miner.save()
 				ledger = Ledger(hash=self.hash, id=self.id, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
 				ledger.save()
 			else:
 				if created:
 					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+					miner.app_only = False
+					miner.save()
+				if miner.app_only:
+					miner.app_only = False
 					miner.save()
 				ledger_new = True
 				duration = int(timestamp - Ledger.objects.get(id=self.id -1).timestamp)
@@ -180,12 +197,20 @@ class JsonMoacLedger(models.Model):
 						tx_from, created = Address.objects.get_or_create(address=txr['from'])
 						if created:
 							tx_from.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+							tx_from.app_only = False
+							tx_from.save()
+						if tx_from.app_only:
+							tx_from.app_only = False
 							tx_from.save()
 						addresses.add(tx_from)
 						if txr['to']:
 							tx_to, created = Address.objects.get_or_create(address=txr['to'])
 							if created:
 								tx_to.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
+								tx_to.app_only = False
+								tx_to.save()
+							if tx_to.app_only:
+								tx_to.app_only = False
 								tx_to.save()
 							addresses.add(tx_to)
 						else:
@@ -199,6 +224,10 @@ class JsonMoacLedger(models.Model):
 					miner,created = Address.objects.get_or_create(address=jmu.data['miner'])
 					if created:
 						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
+						miner.app_only = False
+						miner.save()
+					if miner.app_only:
+						miner.app_only = False
 						miner.save()
 					addresses.add(miner)
 					uncle.miner = miner
@@ -206,7 +235,7 @@ class JsonMoacLedger(models.Model):
 					uncle.save()
 			if not bypass_balance:
 				sys.stdout.write('update balances:\n\t...')
-				for address in list(filter(lambda x: not x.is_contract and not x.display.startswith('system') , addresses)):
+				for address in list(filter(lambda x: not x.is_contract and not x.app_only , addresses)):
 					a = Address.objects.get(address=address.address)
 					sys.stdout.write("%s, " % a.display)
 					a.update_balance()

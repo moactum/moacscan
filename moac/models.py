@@ -2,6 +2,7 @@
 
 from django.db import models
 from common.models import *
+import common
 import re, sys, subprocess, pprint, json
 from decimal import Decimal
 import datetime
@@ -17,6 +18,7 @@ class Address(TimeStampedModel):
 	address = models.CharField(max_length=43,unique=True)
 	display = models.CharField(max_length=24,default='')
 	is_contract = models.BooleanField(_("contract?"),default=False,editable=False)
+	app_only = models.BooleanField(default=True,editable=False)
 	code = models.TextField(default='',editable=False)
 	balance = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
 #	timestamp = models.DateTimeField(blank=True,null=True,default=None,editable=False)
@@ -50,11 +52,12 @@ class Address(TimeStampedModel):
 					self.display = "wallet-%08d"  % self.id
 				self.save()
 
-	def update_code(self,url=''):
-		if not url:
-			url = "http://localhost:3000/api/address/%s/code" % self.address
+	def update_code(self,url=None):
 		try:
-			response = request.urlopen(url, timeout=30)
+			if not url:
+				response = common.WebAPI.get("address/{}/code".format(self.address))
+			else:
+				response = common.WebAPI.get("address/{}/code".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				self.code = result['code']
@@ -65,26 +68,48 @@ class Address(TimeStampedModel):
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
 		except Exception as e:
-			out = sys.stderr.write("... exception happend for %s/%s\n" % (self.id,index))
+			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
 			print(e)
 		self.update_display()
 
-	def update_balance(self,url=''):
-		if not url:
-			url = "http://localhost:3000/api/address/%s" % self.address
+	def update_changed(self):
+		last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
+		if last_tx:
+			self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
+		self.save()
+
+	def get_erc20(self,url=None):
 		try:
-			response = request.urlopen(url, timeout=30)
+			if not url:
+				response = common.WebAPI.get("token/{}".format(self.address))
+			else:
+				response = common.WebAPI.get("token/{}".format(self.address), url=url)
+			if response.status == 200:
+				result = json.loads(response.read().decode())
+				pprint.pprint(result)
+			else:
+				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+		except Exception as e:
+			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
+			print(e)
+
+	def update_balance(self,url=None):
+		try:
+			if not url:
+				response = common.WebAPI.get("address/{}".format(self.address))
+			else:
+				response = common.WebAPI.get("address/{}".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				self.balance = result['balance_moac']
 				last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
 				if last_tx:
-					self.updated = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
+					self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
 				self.save()
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
 		except Exception as e:
-			out = sys.stderr.write("... exception happend for %s/%s\n" % (self.address))
+			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
 			print(e)
 
 class Ledger(models.Model):
