@@ -17,7 +17,6 @@ class JsonMoacLedgerAdmin(admin.ModelAdmin):
 	def has_module_permission(self,request):
 		return True
 
-	
 class AddressAdmin(admin.ModelAdmin):
 	list_display = ('display','balance','is_contract','created','changed','address')
 	readonly_fields = ('address','balance','is_contract','created','changed', 'display','code')
@@ -27,16 +26,26 @@ class AddressAdmin(admin.ModelAdmin):
 	date_hierarchy = 'changed'
 
 	def has_change_permission(self,request,obj=None):
-		#if obj:
-		#	return False
 		return True
-		#return request.user.is_anonymous
 	def has_module_permission(self,request):
 		return True
-
 	def save_model(self, request, obj, form, change):
 		pass
+	def delete_model(request, obj):
+		pass
 
+class TokenAdmin(admin.ModelAdmin):
+	list_display = ('symbol','token_type','decimals','address','name','total_supply')
+	list_filter = ('token_type',)
+	ordering = ('-created',)
+	date_hierarchy = 'created'
+
+	def has_change_permission(self,request,obj=None):
+		return True
+	def has_module_permission(self,request):
+		return True
+	def save_model(self, request, obj, form, change):
+		pass
 	def delete_model(request, obj):
 		pass
 
@@ -48,16 +57,11 @@ class UncleAdmin(admin.ModelAdmin):
 	date_hierarchy = 'ledger__date'
 
 	def has_change_permission(self,request,obj=None):
-		#if obj:
-		#	return False
 		return True
-		#return request.user.is_anonymous
 	def has_module_permission(self,request):
 		return True
-
 	def save_model(self, request, obj, form, change):
 		pass
-
 	def delete_model(request, obj):
 		pass
 
@@ -69,16 +73,11 @@ class LedgerAdmin(admin.ModelAdmin):
 	date_hierarchy = 'date'
 
 	def has_change_permission(self,request,obj=None):
-		#if obj:
-		#	return False
 		return True
-		#return request.user.is_anonymous
 	def has_module_permission(self,request):
 		return True
-
 	def save_model(self, request, obj, form, change):
 		pass
-
 	def delete_model(request, obj):
 		pass
 
@@ -90,8 +89,6 @@ class TransactionAdmin(admin.ModelAdmin):
 	date_hierarchy = 'ledger__date'
 
 	def has_change_permission(self,request,obj=None):
-		#if obj:
-		#	return False
 		return True
 	def has_module_permission(self,request):
 		return True
@@ -111,6 +108,7 @@ class AdminSite(admin.sites.AdminSite):
 my_admin_site_public = AdminSite(name='public')
 my_admin_site_public.disable_action('delete_selected')
 my_admin_site_public.register(Address,AddressAdmin)
+my_admin_site_public.register(Token,TokenAdmin)
 my_admin_site_public.register(Uncle,UncleAdmin)
 my_admin_site_public.register(Ledger,LedgerAdmin)
 my_admin_site_public.register(Transaction,TransactionAdmin)

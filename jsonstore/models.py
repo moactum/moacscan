@@ -11,7 +11,7 @@ from urllib import error, request
 import sys, random, time, json
 from decimal import Decimal
 import common
-from moac.models import Ledger, Address, Transaction, Uncle
+from moac.models import TokenType, Token, Ledger, Address, Transaction, Uncle
 
 #hashrate_tera = pow(2,40)
 hashrate_tera = 1e12
@@ -47,7 +47,9 @@ class JsonStat(models.Model):
 			self.data['wallets_mainnet'] = Address.objects.filter(app_only=False).filter(is_contract=False).count()
 			self.data['wallets'] = self.data['wallets_apponly'] + self.data['wallets_mainnet']
 			self.data['contracts'] = Address.objects.filter(is_contract=True).count()
+			self.data['tokens'] = Token.objects.count()
 			self.data['transactions'] = Transaction.objects.count()
+			self.data['subchains'] = TokenType.objects.count()
 			if self.data['ledgers'] > 100:
 				self.data['difficulty'] = 10 * Ledger.objects.get(id=self.data['ledgers'] - 1).difficulty // hashrate_tera / 10
 				self.data['bigpools'] = Address.objects.annotate(Count('ledger')).filter(ledger__count__gt=10000).count()

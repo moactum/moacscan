@@ -78,7 +78,8 @@ class Address(TimeStampedModel):
 			self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
 		self.save()
 
-	def get_erc20(self,url=None):
+	def update_erc20_token(self,url=None):
+		token_type,created = TokenType.objects.get_or_create(name='erc20')
 		try:
 			if not url:
 				response = common.WebAPI.get("token/{}".format(self.address))
@@ -87,6 +88,15 @@ class Address(TimeStampedModel):
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				pprint.pprint(result)
+				token,created = Token.objects.get_or_create(symbol=result['symbol'], token_type=token_type)
+				if created:
+					token.created = self.created
+					token.save()
+				token.address = self
+				token.name = result['name']
+				token.decimals = int(result['decimals'])
+				token.total_supply = Decimal(result['totalSupply'])
+				token.save()
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
 		except Exception as e:
@@ -171,6 +181,7 @@ class Uncle(models.Model):
 class Token(TimeStampedModel):
 	symbol = models.CharField(max_length=8,db_index=True)
 	name = models.CharField(max_length=32,default='token name')
+	decimals = models.IntegerField(default=0)
 	token_type = models.ForeignKey(TokenType,on_delete=models.PROTECT,editable=False)
 	total_supply = models.DecimalField(max_digits=30,decimal_places=2,editable=False,default=Decimal(0))
 	address = models.OneToOneField(Address,null=True,default=None,on_delete=models.SET_NULL,editable=False)
