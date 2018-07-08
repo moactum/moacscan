@@ -10,8 +10,9 @@ from django.db.models import Sum, Count, Max, Min
 from urllib import error, request
 import sys, random, time, json, re
 from decimal import Decimal
+from common.models import *
 import common
-from moac.models import TokenType, Token, Ledger, Address, Transaction, Uncle
+from moac.models import Token, Ledger, Address, Transaction, Uncle
 
 #hashrate_tera = pow(2,40)
 hashrate_tera = 1e12

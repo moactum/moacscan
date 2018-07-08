@@ -14,13 +14,6 @@ from urllib import request
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
-class TokenType(models.Model):
-	name = models.CharField(max_length=16,unique=True)
-	class Meta:
-		pass
-	def __str__(self):
-		return self.name
-
 class Address(TimeStampedModel):
 	address = models.CharField(max_length=43,unique=True)
 	display = models.CharField(max_length=24,default='')
@@ -82,9 +75,9 @@ class Address(TimeStampedModel):
 		token_type,created = TokenType.objects.get_or_create(name='erc20')
 		try:
 			if not url:
-				response = common.WebAPI.get("token/{}".format(self.address))
+				response = common.WebAPI.get("address/{}/token".format(self.address))
 			else:
-				response = common.WebAPI.get("token/{}".format(self.address), url=url)
+				response = common.WebAPI.get("address/{}/token".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				pprint.pprint(result)
@@ -105,9 +98,9 @@ class Address(TimeStampedModel):
 	def update_balance(self,url=None):
 		try:
 			if not url:
-				response = common.WebAPI.get("address/{}".format(self.address))
+				response = common.WebAPI.get("address/{}/balance".format(self.address))
 			else:
-				response = common.WebAPI.get("address/{}".format(self.address), url=url)
+				response = common.WebAPI.get("address/{}/balance".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				self.balance = result['balance_moac']
