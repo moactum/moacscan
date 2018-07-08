@@ -88,11 +88,10 @@ class Address(TimeStampedModel):
 			if response.status == 200:
 				result = json.loads(response.read().decode())
 				pprint.pprint(result)
-				token,created = Token.objects.get_or_create(symbol=result['symbol'], token_type=token_type)
+				token,created = Token.objects.get_or_create(symbol=result['symbol'], token_type=token_type, address=self)
 				if created:
 					token.created = self.created
 					token.save()
-				token.address = self
 				token.name = result['name']
 				token.decimals = int(result['decimals'])
 				token.total_supply = Decimal(result['totalSupply'])
@@ -187,7 +186,7 @@ class Token(TimeStampedModel):
 	address = models.OneToOneField(Address,null=True,default=None,on_delete=models.SET_NULL,editable=False)
 	owners = models.ManyToManyField(Address,related_name='owners',editable=False)
 	class Meta:
-		unique_together = ('symbol', 'token_type')
+		unique_together = ('symbol', 'token_type', 'address')
 	def __str__(self):
 		return self.symbol
 
