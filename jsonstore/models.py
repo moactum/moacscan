@@ -68,7 +68,6 @@ class JsonJingtumLedger(models.Model):
 	parent_hash = models.CharField(max_length=64,default='',unique=True,editable=False)
 	data = JSONField()
 	synced = models.BooleanField(default=False, editable=False)
-	#parent = TreeForeignKey('self',null=True, blank=True, on_delete=models.SET_NULL, related_name='children', db_index=True)
 
 	def __str__(self):
 		return "%s: %s" % (self.id, self.hash)
@@ -105,7 +104,6 @@ class JsonMoacLedger(models.Model):
 	parent_hash = models.CharField(max_length=66,default='',unique=True,editable=False)
 	data = JSONField()
 	synced = models.BooleanField(default=False, editable=False)
-	#parent = TreeForeignKey('self',null=True, blank=True, on_delete=models.SET_NULL, related_name='children', db_index=True)
 
 	class Meta:
 		ordering = ('id',)
@@ -332,6 +330,17 @@ class JsonMoacUncle(models.Model):
 		for u in Uncle.objects.filter(hash=self.hash):
 			u.delete()
 		super(JsonMoacUncle,self).delete()
+
+class JsonTokenLog(models.Model):
+	block_number = models.IntegerField(default=0)
+	tx_index = models.IntegerField(default=0)
+	log_index = models.IntegerField(default=0)
+	data = JSONField(default={})
+
+	class Meta:
+		unique_together = ('block_number','tx_index','log_index')
+	def __str__(self):
+		return "{}-{}-{}".format(self.block_number, self.tx_index, self.log_index)
 
 @receiver(pre_save, sender=JsonJingtumLedger)
 def pre_save_ledger_jingtum(sender, instance, **kwargs):

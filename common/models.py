@@ -3,9 +3,9 @@ from django.utils import timezone
 
 # Create your models here.
 class TimeStampedModel(models.Model):
-	created = models.DateTimeField(auto_now_add=True)
-	changed = models.DateTimeField(default=timezone.now)
-	updated = models.DateTimeField(auto_now =True)
+	created = models.DateTimeField(auto_now_add=True,editable=False)
+	changed = models.DateTimeField(default=timezone.now,editable=False)
+	updated = models.DateTimeField(auto_now =True,editable=False)
 
 	class Meta:
 		abstract = True
