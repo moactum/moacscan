@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models import Sum, Count, Max, Min
 #from mptt.models import MPTTModel, TreeForeignKey
 from urllib import error, request
-import sys, random, time, json
+import sys, random, time, json, re
 from decimal import Decimal
 import common
 from moac.models import TokenType, Token, Ledger, Address, Transaction, Uncle
@@ -237,7 +237,7 @@ class JsonMoacLedger(models.Model):
 					uncle.save()
 			if not bypass_balance:
 				sys.stdout.write('update balances:\n\t...')
-				for address in list(filter(lambda x: not x.is_contract and not x.app_only , addresses)):
+				for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 					a = Address.objects.get(address=address.address)
 					sys.stdout.write("%s, " % a.display)
 					a.update_balance()
