@@ -56,6 +56,7 @@ class Address(TimeStampedModel):
 				self.code = result['code']
 				if self.code and self.code != '0x':
 					self.is_contract = True
+				self.code = ''
 				self.save()
 				out = sys.stdout.write("\t... determined contract\n")
 			else:
@@ -205,6 +206,20 @@ class Transaction(models.Model):
 	def __str__(self):
 		return self.hash
 	
+class TokenLog(TimeStampedModel):
+	block = models.ForeignKey(Ledger, on_delete=models.CASCADE, editable=False)
+	transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, editable=False)
+	index = models.IntegerField(default=0)
+	topic = models.ForeignKey(TokenTopic, on_delete=models.CASCADE, null=True, default=None, editable=False)
+	address = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, default=None, editable = False)
+	wallets = models.ManyToManyField(Address, related_name='wallets')
+
+	class Meta:
+		ordering = ('-block','-transaction','-index')
+		unique_together = ('block','transaction','index')
+	def __str__(self):
+		return "{}-{}-{}".format(self.block.id,self.transaction.index,self.index)
+
 @receiver(pre_save, sender=Ledger)
 def pre_save_ledger(sender, instance, **kwargs):
 	if not instance.date:

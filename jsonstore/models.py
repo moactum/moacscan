@@ -12,7 +12,7 @@ import sys, random, time, json, re
 from decimal import Decimal
 from common.models import *
 import common
-from moac.models import Token, Ledger, Address, Transaction, Uncle
+from moac.models import Token, TokenLog, Ledger, Address, Transaction, Uncle
 
 #hashrate_tera = pow(2,40)
 hashrate_tera = 1e12
@@ -336,11 +336,37 @@ class JsonTokenLog(models.Model):
 	tx_index = models.IntegerField(default=0)
 	log_index = models.IntegerField(default=0)
 	data = JSONField(default={})
+	synced = models.BooleanField(default=False, editable=False)
 
 	class Meta:
 		unique_together = ('block_number','tx_index','log_index')
+
 	def __str__(self):
 		return "{}-{}-{}".format(self.block_number, self.tx_index, self.log_index)
+
+	def update_token_log(self):
+		try:
+			if not self.synced:
+				block = Ledger.objects.get(id=self.block_number)
+				transaction = Transaction.objects.get(hash=self.data['transactionHash'])
+				tokenlog, created = TokenLog.objects.get_or_create(block=block,transaction=transaction,index=self.log_index)
+				tokenlog.address = Address.objects.get(address=self.data['address'])
+				tokenlog.topic = TokenTopic.objects.get(hash=self.data['topics'][0])
+				for topic in self.data['topics'][1:]:
+					address = re.sub(r'0x000000000000000000000000','0x',topic)
+					if len(address) == 42:
+						wallet, created = Address.objects.get_or_create(address=address)
+						if created:
+							print("\tapp_only wallet created")
+							wallet.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
+						tokenlog.wallets.add(wallet)
+					else:
+						print("\t...!... check address {}".format(address))
+				tokenlog.save()
+				self.synced = True
+				self.save()
+		except Exception as e:
+			print(e)
 
 @receiver(pre_save, sender=JsonJingtumLedger)
 def pre_save_ledger_jingtum(sender, instance, **kwargs):
