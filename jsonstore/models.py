@@ -235,11 +235,11 @@ class JsonMoacLedger(models.Model):
 					uncle.number = jmu.data['number']
 					uncle.save()
 			if not bypass_balance:
-				sys.stdout.write('update balances:\n\t...')
+				sys.stdout.write('flag to update balances:\n\t...')
 				for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 					a = Address.objects.get(address=address.address)
-					sys.stdout.write("%s, " % a.display)
-					a.update_balance()
+					sys.stdout.write(" .")
+					a.flag_update_balance()
 				sys.stdout.write('\n')
 			if ledger_new:
 				jsl,created = JsonStat.objects.get_or_create(metric='ledger')
