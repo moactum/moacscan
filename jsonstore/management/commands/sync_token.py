@@ -4,7 +4,7 @@ import sys, subprocess
 import json, pprint, datetime
 import time, random
 from urllib import request
-from multiprocessing import Pool
+import multiprocessing
 
 class Command(BaseCommand):
 	help = 'Sychronize token related staff'
@@ -15,13 +15,18 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **options):
 		self.stdout.write("...sychronize moac tokens")
-		while True:
-			#with Pool(5) as pool:
-			#	pool.map(JsonMoacLedger.sync,range(starting, 20000))
-			try:
-				for jtl in JsonTokenLog.objects.filter(synced=False):
-					jtl.update_token_log()
-			except Exception as e:
-				self.stdout.write(e.__str__())
-			self.stdout.write(self.style.SUCCESS('sychronized tokens'))
-			time.sleep(3600)
+		def sync_token(jtl):
+			self.stdout.write(self.style.SUCCESS('\t... updating {} ...'.format(jtl.__str__())))
+			jtl.update_token_log()
+		with multiprocessing.Pool(5) as pool:
+			list(map(sync_token, JsonTokenLog.objects.filter(synced=False)))
+	#	while True:
+	#		#with Pool(5) as pool:
+	#		#	pool.map(JsonMoacLedger.sync,range(starting, 20000))
+	#		try:
+	#			for jtl in JsonTokenLog.objects.filter(synced=False):
+	#				jtl.update_token_log()
+	#		except Exception as e:
+	#			self.stdout.write(e.__str__())
+		self.stdout.write(self.style.SUCCESS('sychronized tokens'))
+	#		time.sleep(3600)

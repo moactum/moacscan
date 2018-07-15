@@ -21,7 +21,7 @@ class Address(TimeStampedModel):
 	code = models.TextField(default='',editable=False)
 	balance = models.DecimalField(max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
 	app_only = models.BooleanField(default=True,editable=False)
-	flag_balance = models.BooleanField(default=False,editable=False)
+	#flag_balance = models.BooleanField(default=False,editable=False)
 
 	class Meta:
 		ordering = ('address', )
@@ -73,10 +73,6 @@ class Address(TimeStampedModel):
 			self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
 		self.save()
 
-	def flag_update_balance(self):
-		self.flag_balance = True
-		self.save()
-
 	def update_erc20_token(self,url=None):
 		token_type,created = TokenType.objects.get_or_create(name='erc20')
 		try:
@@ -113,7 +109,6 @@ class Address(TimeStampedModel):
 				last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
 				if last_tx:
 					self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
-				self.flag_balance = False
 				self.save()
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)

@@ -13,6 +13,7 @@ from decimal import Decimal
 from common.models import *
 import common
 from moac.models import Token, TokenLog, Ledger, Address, Transaction, Uncle
+from moac import tasks as moac_tasks
 
 #hashrate_tera = pow(2,40)
 hashrate_tera = 1e12
@@ -239,7 +240,8 @@ class JsonMoacLedger(models.Model):
 				for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 					a = Address.objects.get(address=address.address)
 					sys.stdout.write(" .")
-					a.flag_update_balance()
+					moac_tasks.address_update_balance.delay(a.id)
+					#a.flag_update_balance()
 				sys.stdout.write('\n')
 			if ledger_new:
 				jsl,created = JsonStat.objects.get_or_create(metric='ledger')

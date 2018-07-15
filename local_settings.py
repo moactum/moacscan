@@ -15,7 +15,8 @@ INSTALLED_APPS += [
 	#'whitenoise.runserver_nostatic',
 	'django.contrib.staticfiles',
 	'common',
-	'profile.apps.ProfileConfig',
+	'profile',
+	#'profile.apps.ProfileConfig',
 	'jsonstore',
 	#'jingtum',
 	'moac',
@@ -129,5 +130,6 @@ API_CHAIN3 = 'http://localhost:3000/api'
 LOCALE_PATHS = [
 	os.path.join(BASE_DIR, 'locale')
 ]
+CELERY_BROKER_URL = 'redis://localhost:6379/9'
 #DEBUG = False
 DEBUG = True
