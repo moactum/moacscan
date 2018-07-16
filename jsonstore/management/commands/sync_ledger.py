@@ -5,6 +5,7 @@ import json, pprint, datetime
 import time, random
 from urllib import request
 from multiprocessing import Pool
+from jsonstore import tasks as jsonstore_tasks
 
 #from socketIO_client import SocketIO, BaseNamespace
 
@@ -34,4 +35,7 @@ class Command(BaseCommand):
 			except Exception as e:
 				print(e)
 				time.sleep(10)
+			if starting % 100 == 0:
+				print("\t initiate sync tokenlog")
+				jsonstore_tasks.json_token_log_sync.delay()
 		self.stdout.write(self.style.SUCCESS('Successfully sychronized ledgers'))

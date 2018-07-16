@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models import Sum, Count, Max, Min
 #from mptt.models import MPTTModel, TreeForeignKey
 from urllib import error, request
-import sys, random, time, json, re
+import sys, random, time, json, re, pprint
 from decimal import Decimal
 from common.models import *
 import common
@@ -345,6 +345,32 @@ class JsonTokenLog(models.Model):
 
 	def __str__(self):
 		return "{}-{}-{}".format(self.block_number, self.tx_index, self.log_index)
+
+	@classmethod
+	def sync(cls):
+		from_block = 0
+		last_block = JsonMoacLedger.objects.order_by('-id').first()
+		last_jtl = cls.objects.order_by('-block_number').first()
+		if last_jtl:
+			from_block = last_jtl.block_number
+		if last_block:
+			to_block = min(last_block.id, from_block + random.randint(2000,20000))
+		print("\tgot tokenlog sync range block {} - {}".format(from_block, to_block))
+		try:
+			response = common.WebAPI.get("log/{0}/{1}".format(from_block,to_block),timeout=180)
+			if response.status == 200:
+				result = json.loads(response.read().decode())
+				print("\tapi got {} records".format(len(result)))
+				for item in result:
+					jtl, created = cls.objects.get_or_create(block_number=int(item['blockNumber'],base=16),tx_index=int(item['transactionIndex'],base=16),log_index=int(item['logIndex'],base=16),data=item)
+					if created:
+						jtl.update_token_log()
+			else:
+				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+		except Exception as e:
+			out = sys.stderr.write("... exception happend for tokenlog sync")
+			print(e)
+		
 
 	def update_token_log(self):
 		try:
