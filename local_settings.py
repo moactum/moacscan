@@ -131,5 +131,5 @@ LOCALE_PATHS = [
 	os.path.join(BASE_DIR, 'locale')
 ]
 CELERY_BROKER_URL = 'redis://localhost:6379/9'
-#DEBUG = False
-DEBUG = True
+DEBUG = False
+#DEBUG = True
