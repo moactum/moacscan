@@ -54,11 +54,11 @@ class Address(TimeStampedModel):
 				response = common.WebAPI.get("address/{}/code".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
-				self.code = result['code']
-				if self.code and self.code != '0x':
+				code = result['code']
+				if code and code != '0x':
 					self.is_contract = True
-				self.code = ''
-				self.save()
+					self.save()
+					self.update_erc20_token()
 				out = sys.stdout.write("\t... determined contract\n")
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
@@ -74,7 +74,7 @@ class Address(TimeStampedModel):
 		self.save()
 
 	def update_erc20_token(self,url=None):
-		token_type,created = TokenType.objects.get_or_create(name='erc20')
+		token_type = None
 		try:
 			if not url:
 				response = common.WebAPI.get("address/{}/token".format(self.address))
@@ -82,6 +82,8 @@ class Address(TimeStampedModel):
 				response = common.WebAPI.get("address/{}/token".format(self.address), url=url)
 			if response.status == 200:
 				result = json.loads(response.read().decode())
+				if "protocol" in result.keys():
+					token_type,created = TokenType.objects.get_or_create(name=result["protocol"])
 				pprint.pprint(result)
 				token,created = Token.objects.get_or_create(symbol=result['symbol'], token_type=token_type, address=self)
 				if created:
@@ -173,10 +175,10 @@ class Uncle(models.Model):
 		#return "%s:%s" % (self.number,self.hash)
 
 class Token(TimeStampedModel):
-	symbol = models.CharField(max_length=8,db_index=True)
-	name = models.CharField(max_length=32,default='token name')
+	symbol = models.CharField(max_length=32,db_index=True)
+	name = models.CharField(max_length=64,default='token name')
 	decimals = models.IntegerField(default=0)
-	token_type = models.ForeignKey(TokenType,on_delete=models.PROTECT,editable=False)
+	token_type = models.ForeignKey(TokenType,on_delete=models.SET_NULL,null=True,default=None,editable=False)
 	total_supply = models.DecimalField(max_digits=30,decimal_places=2,editable=False,default=Decimal(0))
 	address = models.OneToOneField(Address,null=True,default=None,on_delete=models.SET_NULL,editable=False)
 	owners = models.ManyToManyField(Address,related_name='owners',editable=False)
@@ -237,10 +239,12 @@ def post_save_ledger(sender, instance, created, **kwargs):
 			statledger.ledger_tps = instance
 			statledger.save()
 
-@receiver(post_save, sender=Address)
-def post_save_Address(sender, instance, created, **kwargs):
-	if created:
-		instance.update_code()
+#@receiver(post_save, sender=Address)
+#def post_save_Address(sender, instance, created, **kwargs):
+#	if created:
+#		pass
+#		#instance.update_code()
+#		#tasks.address_update_contract.delay(instance.id)
 
 @receiver(pre_save, sender=Transaction)
 def pre_save_transaction(sender, instance, **kwargs):

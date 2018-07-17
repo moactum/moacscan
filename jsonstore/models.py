@@ -152,10 +152,12 @@ class JsonMoacLedger(models.Model):
 					uncle,created = Uncle.objects.get_or_create(hash=uncle_hash,ledger=ledger)
 					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,ledger=JsonMoacLedger.objects.get(hash=ledger.hash))
 					miner,created = Address.objects.get_or_create(address=jmu.data['miner'])
-					if created and ledger.timestamp:
-						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(ledger.timestamp))
-						miner.app_only = False
-						miner.save()
+					if created:
+						if ledger.timestamp:
+							miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(ledger.timestamp))
+							miner.app_only = False
+							miner.save()
+						moac_tasks.address_update_contract(miner.id)
 					if miner.app_only:
 						miner.app_only = False
 						miner.save()
@@ -173,6 +175,7 @@ class JsonMoacLedger(models.Model):
 					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 					miner.app_only = False
 					miner.save()
+					moac_tasks.address_update_contract(miner.id)
 				if miner.app_only:
 					miner.app_only = False
 					miner.save()
@@ -201,6 +204,7 @@ class JsonMoacLedger(models.Model):
 							tx_from.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 							tx_from.app_only = False
 							tx_from.save()
+							moac_tasks.address_update_contract(tx_from.id)
 						if tx_from.app_only:
 							tx_from.app_only = False
 							tx_from.save()
@@ -211,6 +215,7 @@ class JsonMoacLedger(models.Model):
 								tx_to.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 								tx_to.app_only = False
 								tx_to.save()
+								moac_tasks.address_update_contract(tx_to.id)
 							if tx_to.app_only:
 								tx_to.app_only = False
 								tx_to.save()
@@ -228,6 +233,7 @@ class JsonMoacLedger(models.Model):
 						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
 						miner.app_only = False
 						miner.save()
+						moac_tasks.address_update_contract(miner.id)
 					if miner.app_only:
 						miner.app_only = False
 						miner.save()
@@ -237,7 +243,8 @@ class JsonMoacLedger(models.Model):
 					uncle.save()
 			if not bypass_balance:
 				sys.stdout.write('flag to update balances:\n\t...')
-				for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
+				for address in list(filter(lambda x: not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
+				#for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 					a = Address.objects.get(address=address.address)
 					sys.stdout.write(" .")
 					moac_tasks.address_update_balance.delay(a.id)
@@ -378,8 +385,15 @@ class JsonTokenLog(models.Model):
 				block = Ledger.objects.get(id=self.block_number)
 				transaction = Transaction.objects.get(hash=self.data['transactionHash'])
 				tokenlog, created = TokenLog.objects.get_or_create(block=block,transaction=transaction,index=self.log_index)
-				tokenlog.address = Address.objects.get(address=self.data['address'])
-				tokenlog.topic = TokenTopic.objects.get(hash=self.data['topics'][0])
+				tokenlog_address, created = Address.objects.get_or_create(address=self.data['address'])
+				if created:
+					tokenlog_address.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
+					tokenlog_address.save()
+					moac_tasks.address_update_contract(tokenlog_address.id)
+					moac_tasks.address_update_balance.delay(tokenlog_address.id)
+				tokenlog.address = tokenlog_address
+				tokenlog_topic,created = TokenTopic.objects.get_or_create(hash=self.data['topics'][0])
+				tokenlog.topic = tokenlog_topic
 				for topic in self.data['topics'][1:]:
 					address = re.sub(r'0x000000000000000000000000','0x',topic)
 					if len(address) == 42:
@@ -387,6 +401,7 @@ class JsonTokenLog(models.Model):
 						if created:
 							print("\tapp_only wallet created")
 							wallet.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
+							moac_tasks.address_update_contract(wallet.id)
 						tokenlog.wallets.add(wallet)
 					else:
 						print("\t...!... check address {}".format(address))

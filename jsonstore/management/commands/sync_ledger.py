@@ -38,4 +38,5 @@ class Command(BaseCommand):
 			if starting % 100 == 0:
 				print("\t initiate sync tokenlog")
 				jsonstore_tasks.json_token_log_sync.delay()
+			time.sleep(1)
 		self.stdout.write(self.style.SUCCESS('Successfully sychronized ledgers'))
