@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from django.db import models
+from django.db import models, transaction
 from common.models import *
 import common
 import re, sys, subprocess, pprint, json
@@ -59,13 +59,14 @@ class Address(TimeStampedModel):
 					self.is_contract = True
 					self.save()
 					self.update_erc20_token()
-				out = sys.stdout.write("\t... determined contract\n")
+				#out = sys.stdout.write("\t... determined contract\n")
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
 			print(e)
-		self.update_display()
+		if not self.display:
+			self.update_display()
 
 	def update_changed(self):
 		last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
@@ -242,9 +243,10 @@ def post_save_ledger(sender, instance, created, **kwargs):
 #@receiver(post_save, sender=Address)
 #def post_save_Address(sender, instance, created, **kwargs):
 #	if created:
-#		pass
-#		#instance.update_code()
-#		#tasks.address_update_contract.delay(instance.id)
+#		with transaction.atomic():
+#			instance = Address.objects.select_for_update().get(id=instance.id)
+#			instance.update_code()
+##		#tasks.address_update_contract.delay(instance.id)
 
 @receiver(pre_save, sender=Transaction)
 def pre_save_transaction(sender, instance, **kwargs):

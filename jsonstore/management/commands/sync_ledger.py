@@ -26,17 +26,19 @@ class Command(BaseCommand):
 			starting = latest_ledger.id + 1
 		self.stdout.write("starting from %g" % starting)
 		while True:
-			#with Pool(5) as pool:
-			#	pool.map(JsonMoacLedger.sync,range(starting, 20000))
 			try:
 				ledger = JsonMoacLedger.sync(starting)
 				starting = ledger.id + 1
 				self.stdout.write("\tsyncing %s" % starting)
 			except Exception as e:
 				print(e)
-				time.sleep(10)
-			if starting % 100 == 0:
-				print("\t initiate sync tokenlog")
-				jsonstore_tasks.json_token_log_sync.delay()
 			time.sleep(1)
+			if starting % 200 == 0:
+				print("\n\t... initiate sync tokenlog")
+				jsonstore_tasks.json_token_log_sync.delay()
+				print("\t... initiated sync tokenlog")
+				time.sleep(5)
+			if starting % 10000 == 0:
+				print("\t sleep half a minute at {}".format(starting))
+				time.sleep(30)
 		self.stdout.write(self.style.SUCCESS('Successfully sychronized ledgers'))
