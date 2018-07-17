@@ -8,7 +8,7 @@
 **/platforms
 **/*.pyc
 **/*.swp
-**/migrations/0*py
+**/migrations
 
 # dependencies
 **/node_modules
