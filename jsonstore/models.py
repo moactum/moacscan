@@ -387,7 +387,7 @@ class JsonTokenLog(models.Model):
 				tokenlog, created = TokenLog.objects.get_or_create(block=block,transaction=transaction,index=self.log_index)
 				tokenlog_address, created = Address.objects.get_or_create(address=self.data['address'])
 				if created:
-					tokenlog_address.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
+					tokenlog_address.created = timezone.make_aware(timezone.datetime.fromtimestamp(self.data['timestamp']))
 					tokenlog_address.save()
 					moac_tasks.address_determine_contract.delay(tokenlog_address.id)
 					moac_tasks.address_update_balance.delay(tokenlog_address.id)
@@ -395,21 +395,21 @@ class JsonTokenLog(models.Model):
 				if self.data['topics'][0] in EVENT_SIGNATURES.keys() and EVENT_SIGNATURES[self.data['topics'][0]]:
 					tokenlog_topic,created = TokenTopic.objects.get_or_create(hash=self.data['topics'][0])
 					tokenlog.topic = tokenlog_topic
-				for topic in self.data['topics'][1:]:
-					address = re.sub(r'0x000000000000000000000000','0x',topic)
-					if len(address) == 42:
-						wallet, created = Address.objects.get_or_create(address=address)
-						if created:
-							#print("\tapp_only wallet created")
-							wallet.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
-							wallet.save()
-							moac_tasks.address_determine_contract.delay(wallet.id)
-						tokenlog.wallets.add(wallet)
-					else:
-						print("\t...!... check address {}".format(address))
+					self.synced = True
+					self.save()
+					for topic in self.data['topics'][1:]:
+						address = re.sub(r'0x000000000000000000000000','0x',topic)
+						if len(address) == 42:
+							wallet, created = Address.objects.get_or_create(address=address)
+							if created:
+								#print("\tapp_only wallet created")
+								wallet.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
+								wallet.save()
+								moac_tasks.address_determine_contract.delay(wallet.id)
+							tokenlog.wallets.add(wallet)
+						else:
+							print("\t...!... check address {}".format(address))
 				tokenlog.save()
-				self.synced = True
-				self.save()
 		except Exception as e:
 			print(e)
 
