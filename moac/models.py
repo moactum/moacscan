@@ -59,11 +59,33 @@ class Address(TimeStampedModel):
 					self.is_contract = True
 					self.save()
 					self.update_erc20_token()
+				else:
+					stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+					if self.app_only:
+						stataddress.apponly += 1
+					else:
+						stataddress.wallet += 1
+					stataddress.total = Address.objects.filter(is_contract=False).count()
+					stataddress.save()
 				#out = sys.stdout.write("\t... determined contract\n")
 			else:
 				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+				stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+				if self.app_only:
+					stataddress.apponly += 1
+				else:
+					stataddress.wallet += 1
+				stataddress.total = Address.objects.filter(is_contract=False).count()
+				stataddress.save()
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
+			stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+			if self.app_only:
+				stataddress.apponly += 1
+			else:
+				stataddress.wallet += 1
+			stataddress.total = Address.objects.filter(is_contract=False).count()
+			stataddress.save()
 			print(e)
 		if not self.display:
 			self.update_display()
@@ -192,6 +214,12 @@ class StatLedger(models.Model):
 	date = models.DateField(editable=False,unique=True)
 	ledger_txs = models.ForeignKey(Ledger, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="ledger_txs")
 	ledger_tps = models.ForeignKey(Ledger, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="ledger_tps")
+
+class StatAddress(models.Model):
+	date = models.DateField(editable=False,unique=True)
+	apponly = models.IntegerField(default=0,editable=False)
+	wallet = models.IntegerField(default=0,editable=False)
+	total = models.IntegerField(default=0,editable=False)
 
 class Transaction(models.Model):
 	hash = models.CharField(max_length=66,primary_key=True)

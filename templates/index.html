@@ -394,6 +394,9 @@
           <div class="callout small">
             <div class="grid-x grid-margin-x">
               <div class="cell">
+                <div id="chart_address"></div>
+              </div>
+              <div class="cell">
                 <div id="chart_balance"></div>
               </div>
               <div class="cell">
@@ -411,5 +414,5 @@
     {% endblock %}
     {% block extradjangoloads %}
     {% load chartit %}
-    {{ chart_list|load_charts:"chart,chart_balance" }}
+    {{ chart_list|load_charts:"chart,chart_balance,chart_address" }}
     {% endblock %}

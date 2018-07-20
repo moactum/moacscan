@@ -34,6 +34,30 @@ def homepage(_):
 		]
 	)
 
+	ds_address = DataPool(
+		series=[
+		{
+			'options': { 
+				'source': StatAddress.objects.order_by('date')
+				#'source': OrgCount.objects.filter(date__gte=timezone.datetime(2017,11,1),org__name='ibmcom')
+			},
+			'terms': [
+				{'date': 'date'},
+				{'Total Wallets': 'total'}
+			]
+		},
+		{
+			'options': {
+				'source': StatAddress.objects.order_by('date')
+			},
+			'terms': [
+				{'date': 'date'},
+				{'Daily New Wallets': 'wallet'}
+			]
+		},
+		]
+	)
+
 	ds_balance = DataPool(
 		series=[
 		{
@@ -111,6 +135,68 @@ def homepage(_):
 			},
 		)
 
+	cht_address = Chart(
+		datasource=ds_address,
+		series_options=[
+		{
+			'options': {
+				'type': 'line',
+				'stacking': False,
+				'yAxis': 0,
+			},
+			'terms': {
+				'date': [
+					'Total Wallets',
+					],
+			}
+		},
+		{
+			'options': {
+				'type': 'line',
+				'stacking': False,
+				'yAxis': 1,
+			},
+			'terms': {
+				'date': [
+					'Daily New Wallets',
+					],
+			}
+		},
+		],
+
+		chart_options={
+			'title': {
+				'text': 'Total Wallets and Daily Wallet Increase (apponly not shown)'
+			},
+			'xAxis':
+				{
+				'type': 'date',
+				'tickInterval': 1,
+				'title': {
+					'text': ' '
+					}
+				},
+			'yAxis': [
+				{
+				'title': {
+					'text': 'Total Wallets',
+				},
+				'min': 0
+				},
+				{
+				'title': {
+					'text': 'Daily New Wallets',
+				},
+				'min': 0,
+				'opposite': True
+				},
+			],
+			'chart': {
+				'zoomType': 'x',
+			},
+			},
+		)
+
 	cht_balance = Chart(
 		datasource=ds_balance,
 		series_options=[
@@ -133,12 +219,12 @@ def homepage(_):
 			},
 		)
 
-	return render_to_response('index.html', {'chart_list': [ cht_ledger, cht_balance ], 'stat_ledger': stat_ledger, 'stat_coinmarket': stat_coinmarket})
+	return render_to_response('index.html', {'chart_list': [ cht_ledger, cht_balance, cht_address ], 'stat_ledger': stat_ledger, 'stat_coinmarket': stat_coinmarket})
 
 def live(_):
 	#NUM_LATEST = 5
-	stat_ledger = JsonStat.objects.get(metric='ledger')
-	stat_coinmarket = JsonStat.objects.get(metric='coinmarket')
+	stat_ledger,created = JsonStat.objects.get_or_create(id=1,metric='ledger')
+	stat_coinmarket,created = JsonStat.objects.get_or_create(id=2,metric='coinmarket')
 
 	return render_to_response('live.html', {'stat_ledger': stat_ledger, 'stat_coinmarket': stat_coinmarket})
 
