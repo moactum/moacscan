@@ -22,7 +22,7 @@ coinmarket_update_minimum = 60
 class JsonStat(models.Model):
 	metric = models.CharField(max_length=16,unique=True)
 	data = JSONField(default={})
-	timestamp = models.DateTimeField(auto_now=True)
+	timestamp = models.DateTimeField(default=timezone.now)
 
 	def __str__(self):
 		return self.metric
@@ -36,10 +36,13 @@ class JsonStat(models.Model):
 						data = json.loads(r.read())
 						data[0]['price_btc'] = int( float(data[0]['price_btc']) * 1000000 ) / 1000000
 						self.data = data
+						self.timestamp = timezone.now()
 						self.save()
 				except Exception as e:
 					print(e)
 		elif self.metric == 'ledger':
+			last_ledger = Ledger.objects.last()
+			self.timestamp = timezone.make_aware(timezone.datetime.fromtimestamp(last_ledger.timestamp))
 			self.data['ledgers'] = Ledger.objects.count()
 			self.data['uncles'] = Uncle.objects.count()
 			self.data['moac_mined'] = 2 * (self.data['ledgers'] + self.data['uncles'])
@@ -251,9 +254,9 @@ class JsonMoacLedger(models.Model):
 					#a.flag_update_balance()
 				sys.stdout.write('\n')
 			if ledger_new:
-				jsl,created = JsonStat.objects.get_or_create(metric='ledger')
+				jsl,created = JsonStat.objects.get_or_create(id=1,metric='ledger')
 				jsl.update()
-				jsc,created = JsonStat.objects.get_or_create(metric='coinmarket')
+				jsc,created = JsonStat.objects.get_or_create(id=2,metric='coinmarket')
 				jsc.update()
 			
 	@classmethod
