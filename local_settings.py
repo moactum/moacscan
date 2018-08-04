@@ -55,9 +55,9 @@ DATABASES = {
 	#'dbpostgresql': {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql',
-		'NAME': 'xcliu',								  # Or path to database file if using sqlite3.
+		'NAME': 'moacscan',								  # Or path to database file if using sqlite3.
 		'HOST': '',						  # Set to empty string for localhost. Not used with sq
-		'USER': 'xcliu',								# Not used with sqlite3.
+		'USER': '',								# Not used with sqlite3.
 		'PASSWORD': '',				  # Not used with sqlite3.
 		'PORT': '5432'
 	}
