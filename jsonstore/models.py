@@ -22,7 +22,7 @@ hashrate_average_sample = 10
 coinmarket_update_minimum = 60
 class JsonStat(models.Model):
 	metric = models.CharField(max_length=16,unique=True)
-	data = JSONField(default={})
+	data = JSONField(default=dict)
 	timestamp = models.DateTimeField(default=timezone.now)
 
 	def __str__(self):
@@ -348,7 +348,7 @@ class JsonTokenLog(models.Model):
 	block_number = models.IntegerField(default=0)
 	tx_index = models.IntegerField(default=0)
 	log_index = models.IntegerField(default=0)
-	data = JSONField(default={})
+	data = JSONField(default=dict)
 	synced = models.BooleanField(default=False, editable=False)
 
 	class Meta:
