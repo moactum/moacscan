@@ -226,7 +226,9 @@ class JsonMoacLedger(models.Model):
 							addresses.add(tx_to)
 						else:
 							tx_to = None
-						transaction, created = moac_models.Transaction.objects.get_or_create(ledger=ledger,hash=txr['hash'],tx_from=tx_from, nonce=txr['nonce'], tx_to=tx_to, value=int(float(txr['value'])) / 1000000000, index=int(txr['transactionIndex']))
+						if txr['shardingFlag']:
+							sharding, created = moac_models.ShardingFlag.objects.get_or_create(flag=txr['shardingFlag'], id=int(txr['shardingFlag'],base=16))
+						transaction, created = moac_models.Transaction.objects.get_or_create(ledger=ledger,hash=txr['hash'],tx_from=tx_from, nonce=txr['nonce'], tx_to=tx_to, value=int(float(txr['value'])) / 1000000000, index=int(txr['transactionIndex']), sharding=sharding)
 						transaction.save()
 					sys.stdout.write('\n')
 				for uncle_hash in self.data['uncles']:

@@ -14,6 +14,15 @@ from urllib import request
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
+class ShardingFlag(models.Model):
+	flag = models.CharField(max_length=16,unique=True)
+
+	class Meta:
+		pass
+
+	def __str__(self):
+		return self.flag
+
 class Address(TimeStampedModel):
 	address = models.CharField(max_length=43,unique=True)
 	display = models.CharField(max_length=24,default='')
@@ -229,6 +238,7 @@ class Transaction(models.Model):
 	value = models.BigIntegerField("value int",default=0)
 	value_moac = models.DecimalField("value",max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
 	index = models.IntegerField(default=0)
+	sharding = models.ForeignKey(ShardingFlag, on_delete=models.PROTECT, editable=False,default=None, null=True)
 	ledger = models.ForeignKey(Ledger, on_delete=models.CASCADE, editable=False,default=None, null=True)
 
 	class Meta:
