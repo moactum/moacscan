@@ -55,7 +55,7 @@ class JsonStat(models.Model):
 			self.data['contracts'] = moac_models.Address.objects.filter(is_contract=True).count()
 			self.data['tokens'] = moac_models.Token.objects.count()
 			self.data['transactions'] = moac_models.Transaction.objects.count()
-			self.data['subchains'] = moac_models.TokenType.objects.count()
+			self.data['subchains'] = moac_models.ShardingFlag.objects.count()
 			if self.data['ledgers'] > 100:
 				self.data['difficulty'] = 10 * moac_models.Ledger.objects.get(id=self.data['ledgers'] - 1).difficulty // hashrate_tera / 10
 				self.data['bigpools'] = moac_models.Address.objects.annotate(Count('ledger')).filter(ledger__count__gt=10000).count()
