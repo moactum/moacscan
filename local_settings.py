@@ -126,7 +126,12 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 LOGIN_URL='/drf/auth/login/'
 #DATABASE_ROUTERS = ['dbrouter.dbrouters.DbPostgresqlRouter',]
-API_CHAIN3 = 'http://localhost:3000/api'
+#API_URL_ROOT = proto//server:ports/api/
+API_CHAIN3_PROTO = 'http'
+API_CHAIN3_SERVER = 'localhost'
+#ports are 3000, 3001, ...
+API_PORT_BASE = 3000
+NUM_API_CHAIN3 = 2
 LOCALE_PATHS = [
 	os.path.join(BASE_DIR, 'locale')
 ]

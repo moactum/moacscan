@@ -252,7 +252,7 @@ class JsonMoacLedger(models.Model):
 				for address in list(filter(lambda x: not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 				#for address in list(filter(lambda x: not x.is_contract and not x.app_only and not re.match(r'^0x00000000',x.address, re.I), addresses)):
 					a = moac_models.Address.objects.get(address=address.address)
-					sys.stdout.write(" .")
+					sys.stdout.write(".")
 					moac_tasks.address_update_balance.delay(a.id)
 					#a.flag_update_balance()
 				sys.stdout.write('\n')
