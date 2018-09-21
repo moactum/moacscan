@@ -44,7 +44,7 @@
          </div>
          <div class="top-bar-right">
            <ul class="menu vertical medium-horizontal">
-             <li><a href="{% url 'public:moac_ledger_changelist' %}">{% trans 'Blocks' %}</a></li>
+             <li><a href="{% url 'public:moac_block_changelist' %}">{% trans 'Blocks' %}</a></li>
              <li><a href="{% url 'public:moac_transaction_changelist' %}">{% trans 'Transactions' %}</a></li>
              <li><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=0">{% trans 'Wallets' %}</a></li>
              <li><a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=1">{% trans 'Apps' %}</a></li>

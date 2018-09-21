@@ -37,7 +37,7 @@ router = routers.DefaultRouter()
 #router.register(r'users', apiviews.UserViewSet)
 router.register(r'jsonstats', apiviews.JsonStatViewSet)
 router.register(r'address', apiviews.AddressViewSet)
-router.register(r'block', apiviews.LedgerViewSet)
+router.register(r'block', apiviews.BlockViewSet)
 router.register(r'uncle', apiviews.UncleViewSet)
 router.register(r'tx', apiviews.TransactionViewSet)
 

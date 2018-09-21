@@ -54,7 +54,7 @@
                 <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
 				-->
                 <a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=0">Wallets&nbsp;&nbsp;</a>
-                <a href="{% url 'public:moac_ledger_changelist' %}"> Blocks&nbsp;&nbsp; </a>
+                <a href="{% url 'public:moac_block_changelist' %}"> Blocks&nbsp;&nbsp; </a>
                 <a href="{% url 'public:moac_transaction_changelist' %}"> Transactions&nbsp;&nbsp; </a>
                 <a href="{% url 'public:moac_address_changelist' %}?is_contract__exact=1"> Apps</a>
             {% endblock %}

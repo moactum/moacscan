@@ -25,14 +25,14 @@ class Command(BaseCommand):
 		if options['swtc']:
 			pass
 		else:
-			latest_ledger = JsonMoacLedger.objects.all().order_by('id').last()
-			if latest_ledger:
-				starting = latest_ledger.id + 1
+			latest_block = JsonMoacBlock.objects.all().order_by('id').last()
+			if latest_block:
+				starting = latest_block.id + 1
 			self.stdout.write("starting from %g" % starting)
 			while True:
 				try:
-					ledger = JsonMoacLedger.sync(starting)
-					starting = ledger.id + 1
+					block = JsonMoacBlock.sync(starting)
+					starting = block.id + 1
 					self.stdout.write("\tsyncing %s" % starting)
 				except Exception as e:
 					print(e)

@@ -19,7 +19,7 @@ def homepage(_):
 			},
 			'terms': [
 				{'date': 'date'},
-				{'Daily Max of Txs': 'ledger_txs__num_txs'}
+				{'Daily Max of Txs': 'block_txs__num_txs'}
 			]
 		},
 		{
@@ -28,7 +28,7 @@ def homepage(_):
 			},
 			'terms': [
 				{'date': 'date'},
-				{'Daily Max of Tps': 'ledger_tps__tps'}
+				{'Daily Max of Tps': 'block_tps__tps'}
 			]
 		},
 		]

@@ -47,7 +47,7 @@
               <div class="cell">
                 <div class="card">
                   <div class="card-divider align-center">
-                    <h5><a href="{% url 'public:moac_ledger_changelist' %}">{% trans "Height" %}</a></h5>
+                    <h5><a href="{% url 'public:moac_block_changelist' %}">{% trans "Height" %}</a></h5>
                   </div>
                   <div class="card-section">
             {% verbatim %}
@@ -95,7 +95,7 @@
               <div class="cell">
                 <div class="card">
                   <div class="card-divider align-center">
-                    <h5><a href="{% url 'public:moac_ledger_change' stat_ledger.data.ledgers|add:"-1" %}?is_contract__exact=1">{% trans "Difficulty" %}</a></h5>
+                    <h5><a href="{% url 'public:moac_block_change' stat_ledger.data.ledgers|add:"-1" %}?is_contract__exact=1">{% trans "Difficulty" %}</a></h5>
                   </div>
                   <div class="card-section">
             {% verbatim %}

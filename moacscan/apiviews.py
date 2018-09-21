@@ -5,7 +5,7 @@ from django.contrib.auth.models  import User
  
 from jsonstore import models as jsonstore_models 
 from moac import models as moac_models 
-from .serializers import JsonStatSerializer, AddressSerializer, LedgerSerializer, UncleSerializer, TransactionSerializer 
+from .serializers import JsonStatSerializer, AddressSerializer, BlockSerializer, UncleSerializer, TransactionSerializer 
  
  
 # Serializers define the API representation.
@@ -23,9 +23,9 @@ class JsonStatViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = jsonstore_models.JsonStat.objects.all()
 	serializer_class = JsonStatSerializer
 
-class LedgerViewSet(viewsets.ReadOnlyModelViewSet): 
-	queryset = moac_models.Ledger.objects.all()
-	serializer_class = LedgerSerializer
+class BlockViewSet(viewsets.ReadOnlyModelViewSet): 
+	queryset = moac_models.Block.objects.all()
+	serializer_class = BlockSerializer
 
 class UncleViewSet(viewsets.ReadOnlyModelViewSet): 
 	queryset = moac_models.Uncle.objects.all()

@@ -7,9 +7,9 @@ class JsonStatSerializer(serializers.ModelSerializer):
 	class Meta: 
 		model = jsonstore_models.JsonStat
 		fields = ("id","metric", "timestamp","data")
-class LedgerSerializer(serializers.ModelSerializer): 
+class BlockSerializer(serializers.ModelSerializer): 
 	class Meta: 
-		model = moac_models.Ledger
+		model = moac_models.Block
 		fields = ('__all__')
 class UncleSerializer(serializers.ModelSerializer): 
 	class Meta: 
@@ -22,4 +22,4 @@ class TransactionSerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer): 
 	class Meta: 
 		model = moac_models.Address
-		fields = ("id", "display", "is_contract", "balance", "timestamp")
+		fields = ("address", "display", "is_contract", "balance", "updated")

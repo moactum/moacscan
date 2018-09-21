@@ -24,7 +24,7 @@ class ShardingFlag(models.Model):
 		return self.flag
 
 class Address(TimeStampedModel):
-	address = models.CharField(max_length=43,unique=True)
+	address = models.CharField(max_length=43,primary_key=True)
 	display = models.CharField(max_length=24,default='')
 	is_contract = models.BooleanField(_("contract?"),default=False,editable=False)
 	code = models.TextField(default='',editable=False)
@@ -38,63 +38,58 @@ class Address(TimeStampedModel):
 		verbose_name_plural = _('addresses')
 
 	def __str__(self):
-		return self.display
+		return self.address
 
 	def update_display(self,force=False):
-		if not self.display:
+		if not self.display or force:
 			if self.is_contract:
-				self.display = "contract-%08d" % self.id
+				self.display = "contract-{}".format(self.address[:8])
 			else:
-				self.display = "wallet-%08d"  % self.id
+				self.display = "wallet-{}".format(self.address[:8])
 			self.save()
-		elif force:
-			if self.display.startswith('addr'):
-				if self.is_contract:
-					self.display = "contract-%08d" % self.id
-				else:
-					self.display = "wallet-%08d"  % self.id
-				self.save()
 
 	def update_code(self,url=None):
 		try:
+			if self.address.startswith('0x0000000000000000'):
+				return
 			if not url:
 				response = common.WebAPI.get("address/{}/code".format(self.address))
 			else:
 				response = common.WebAPI.get("address/{}/code".format(self.address), url=url)
-			if response.status == 200:
-				result = json.loads(response.read().decode())
+			if response.ok:
+				result = response.json()
 				code = result['code']
 				if code and code != '0x':
 					self.is_contract = True
 					self.save()
 					self.update_erc20_token()
-				else:
-					stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
-					if self.app_only:
-						stataddress.apponly += 1
-					else:
-						stataddress.wallet += 1
-					stataddress.total = Address.objects.filter(is_contract=False).count()
-					stataddress.save()
-				#out = sys.stdout.write("\t... determined contract\n")
+			#	else:
+			#		stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+			#		if self.app_only:
+			#			stataddress.apponly += 1
+			#		else:
+			#			stataddress.wallet += 1
+			#		stataddress.total = Address.objects.filter(is_contract=False).count()
+			#		stataddress.save()
+			#	#out = sys.stdout.write("\t... determined contract\n")
 			else:
-				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
-				stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
-				if self.app_only:
-					stataddress.apponly += 1
-				else:
-					stataddress.wallet += 1
-				stataddress.total = Address.objects.filter(is_contract=False).count()
-				stataddress.save()
+				out = sys.stdout.write("..!..http returned error status\n")
+			#	stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+			#	if self.app_only:
+			#		stataddress.apponly += 1
+			#	else:
+			#		stataddress.wallet += 1
+			#	stataddress.total = Address.objects.filter(is_contract=False).count()
+			#	stataddress.save()
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
-			stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
-			if self.app_only:
-				stataddress.apponly += 1
-			else:
-				stataddress.wallet += 1
-			stataddress.total = Address.objects.filter(is_contract=False).count()
-			stataddress.save()
+		#	stataddress,created = StatAddress.objects.get_or_create(date=timezone.now().date())
+		#	if self.app_only:
+		#		stataddress.apponly += 1
+		#	else:
+		#		stataddress.wallet += 1
+		#	stataddress.total = Address.objects.filter(is_contract=False).count()
+		#	stataddress.save()
 			print(e)
 		if not self.display:
 			self.update_display()
@@ -102,7 +97,7 @@ class Address(TimeStampedModel):
 	def update_changed(self):
 		last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
 		if last_tx:
-			self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
+			self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.block.timestamp))
 		self.save()
 
 	def update_erc20_token(self,url=None):
@@ -112,8 +107,8 @@ class Address(TimeStampedModel):
 				response = common.WebAPI.get("address/{}/token".format(self.address))
 			else:
 				response = common.WebAPI.get("address/{}/token".format(self.address), url=url)
-			if response.status == 200:
-				result = json.loads(response.read().decode())
+			if response.ok:
+				result = response.json()
 				if "protocol" in result.keys():
 					token_type,created = TokenType.objects.get_or_create(name=result["protocol"])
 				pprint.pprint(result)
@@ -126,7 +121,7 @@ class Address(TimeStampedModel):
 				token.total_supply = Decimal(result['totalSupply'])
 				token.save()
 			else:
-				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+				out = sys.stdout.write("..!..http returned error status\n")
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
 			print(e)
@@ -137,20 +132,20 @@ class Address(TimeStampedModel):
 				response = common.WebAPI.get("address/{}/balance".format(self.address))
 			else:
 				response = common.WebAPI.get("address/{}/balance".format(self.address), url=url)
-			if response.status == 200:
-				result = json.loads(response.read().decode())
+			if response.ok:
+				result = response.json()
 				self.balance = result['balance_moac']
 				last_tx = Transaction.objects.filter(Q(tx_from=self) | Q(tx_to=self)).last()
 				if last_tx:
-					self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.ledger.timestamp))
+					self.changed = timezone.make_aware(timezone.datetime.fromtimestamp(last_tx.block.timestamp))
 				self.save()
 			else:
-				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+				out = sys.stdout.write("..!..http returned error status\n")
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for %s\n" % (self.address))
 			print(e)
 
-class Ledger(models.Model):
+class Block(models.Model):
 	hash = models.CharField(max_length=66,unique=True)
 	num_txs = models.IntegerField(default=0)
 	duration = models.IntegerField(default=0)
@@ -163,26 +158,26 @@ class Ledger(models.Model):
 
 	class Meta:
 		ordering = ('id',)
-		verbose_name = _('ledger')
-		verbose_name_plural = _('ledgers')
+		verbose_name = _('block')
+		verbose_name_plural = _('block')
 
 	def __str__(self):
 		return str(self.id)
 
 	@classmethod
 	def verify(cls,start=0):
-		from jsonstore.models import JsonMoacLedger
+		from jsonstore.models import JsonMoacBlock
 		last = cls.objects.get(id=start)
 		for l in cls.objects.filter(id__gt=start):
 			if l.id != last.id + 1:
 				print(l)
 				print(last)
 				return False
-			if len(JsonMoacLedger.objects.get(id=l.id).data['transactions']) != l.transaction_set.count():
+			if len(JsonMoacBlock.objects.get(id=l.id).data['transactions']) != l.transaction_set.count():
 				print(l)
-				jml = JsonMoacLedger.objects.get(id=l.id)
+				jml = JsonMoacBlock.objects.get(id=l.id)
 				l.delete()
-				jml.proc_ledger()
+				jml.proc_block()
 				l = cls.objects.get(id=jml.id)
 				#return False
 			last = l
@@ -196,11 +191,11 @@ class Uncle(models.Model):
 	#nonce = models.CharField(max_length=20,default='')
 	#timestamp = models.IntegerField(default=0)
 	miner = models.ForeignKey(Address, on_delete=models.PROTECT, editable=False,default=None, null=True)
-	ledger = models.ForeignKey(Ledger, on_delete=models.CASCADE, editable=False)
+	block = models.ForeignKey(Block, on_delete=models.CASCADE, editable=False)
 
 	class Meta:
-		ordering = ('ledger',)
-		unique_together = ('hash', 'ledger')
+		ordering = ('block',)
+		unique_together = ('hash', 'block')
 
 	def __str__(self):
 		return self.hash
@@ -221,8 +216,8 @@ class Token(TimeStampedModel):
 
 class StatLedger(models.Model):
 	date = models.DateField(editable=False,unique=True)
-	ledger_txs = models.ForeignKey(Ledger, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="ledger_txs")
-	ledger_tps = models.ForeignKey(Ledger, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="ledger_tps")
+	block_txs = models.ForeignKey(Block, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="block_txs")
+	block_tps = models.ForeignKey(Block, on_delete=models.SET_NULL, null=True, default=None, editable=False, related_name="block_tps")
 
 class StatAddress(models.Model):
 	date = models.DateField(editable=False,unique=True)
@@ -238,18 +233,18 @@ class Transaction(models.Model):
 	value = models.BigIntegerField("value int",default=0)
 	value_moac = models.DecimalField("value",max_digits=18,decimal_places=9,editable=False,default=Decimal(0))
 	index = models.IntegerField(default=0)
-	sharding = models.ForeignKey(ShardingFlag, on_delete=models.PROTECT, editable=False,default=None, null=True)
-	ledger = models.ForeignKey(Ledger, on_delete=models.CASCADE, editable=False,default=None, null=True)
+	#sharding = models.ForeignKey(ShardingFlag, on_delete=models.PROTECT, editable=False,default=None, null=True)
+	block = models.ForeignKey(Block, on_delete=models.CASCADE, editable=False,default=None, null=True)
 
 	class Meta:
-		ordering = ('ledger','index')
-		unique_together = ('ledger','index')
+		ordering = ('block','index')
+		unique_together = ('block','index')
 
 	def __str__(self):
 		return self.hash
 	
 class TokenLog(TimeStampedModel):
-	block = models.ForeignKey(Ledger, on_delete=models.CASCADE, editable=False)
+	block = models.ForeignKey(Block, on_delete=models.CASCADE, editable=False)
 	transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, editable=False)
 	index = models.IntegerField(default=0)
 	topic = models.ForeignKey(TokenTopic, on_delete=models.CASCADE, null=True, default=None, editable=False)
@@ -262,21 +257,21 @@ class TokenLog(TimeStampedModel):
 	def __str__(self):
 		return "{}-{}-{}".format(self.block.id,self.transaction.index,self.index)
 
-@receiver(pre_save, sender=Ledger)
-def pre_save_ledger(sender, instance, **kwargs):
+@receiver(pre_save, sender=Block)
+def pre_save_block(sender, instance, **kwargs):
 	if not instance.date:
 		instance.date = timezone.make_aware(timezone.datetime.fromtimestamp(instance.timestamp)).date()
 
-@receiver(post_save, sender=Ledger)
-def post_save_ledger(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Block)
+def post_save_block(sender, instance, created, **kwargs):
 	if created:
-		statledger,created = StatLedger.objects.get_or_create(date=instance.date)
-		if not statledger.ledger_txs or statledger.ledger_txs.num_txs < instance.num_txs:
-			statledger.ledger_txs = instance
-			statledger.save()
-		if not statledger.ledger_tps or statledger.ledger_tps.tps < instance.tps:
-			statledger.ledger_tps = instance
-			statledger.save()
+		statblock,created = StatLedger.objects.get_or_create(date=instance.date)
+		if not statblock.block_txs or statblock.block_txs.num_txs < instance.num_txs:
+			statblock.block_txs = instance
+			statblock.save()
+		if not statblock.block_tps or statblock.block_tps.tps < instance.tps:
+			statblock.block_tps = instance
+			statblock.save()
 
 #@receiver(post_save, sender=Address)
 #def post_save_Address(sender, instance, created, **kwargs):

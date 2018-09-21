@@ -33,8 +33,8 @@ class JsonStat(models.Model):
 			if (timezone.now() - self.timestamp).seconds > coinmarket_update_minimum:
 				try:
 					r = common.WebAPI.get('ticker/moac/', url='https://api.coinmarketcap.com/v1/',timeout=20)
-					if r.status == 200:
-						data = json.loads(r.read())
+					if r.ok:
+						data = r.json()
 						data[0]['price_btc'] = int( float(data[0]['price_btc']) * 1000000 ) / 1000000
 						self.data = data
 						self.timestamp = timezone.now()
@@ -42,9 +42,9 @@ class JsonStat(models.Model):
 				except Exception as e:
 					print(e)
 		elif self.metric == 'ledger':
-			last_ledger = moac_models.Ledger.objects.last()
+			last_ledger = moac_models.Block.objects.last()
 			self.timestamp = timezone.make_aware(timezone.datetime.fromtimestamp(last_ledger.timestamp))
-			self.data['ledgers'] = moac_models.Ledger.objects.count()
+			self.data['blocks'] = moac_models.Block.objects.count()
 			self.data['uncles'] = moac_models.Uncle.objects.count()
 			self.data['moac_mined'] = 2 * (self.data['ledgers'] + self.data['uncles'])
 			self.data['moac_circulation'] = int(moac_models.Address.objects.aggregate(Sum('balance'))['balance__sum'])
@@ -56,10 +56,10 @@ class JsonStat(models.Model):
 			self.data['tokens'] = moac_models.Token.objects.count()
 			self.data['transactions'] = moac_models.Transaction.objects.count()
 			self.data['subchains'] = moac_models.ShardingFlag.objects.count()
-			if self.data['ledgers'] > 100:
-				self.data['difficulty'] = 10 * moac_models.Ledger.objects.get(id=self.data['ledgers'] - 1).difficulty // hashrate_tera / 10
-				self.data['bigpools'] = moac_models.Address.objects.annotate(Count('ledger')).filter(ledger__count__gt=10000).count()
-				self.data['hashrate'] = 10 * moac_models.Ledger.objects.filter(id__gte=self.data['ledgers'] - hashrate_average_sample).filter(id__lt=self.data['ledgers']).aggregate(Sum('difficulty'))['difficulty__sum'] // hashrate_tera // (moac_models.Ledger.objects.get(id=self.data['ledgers'] - 1).timestamp - moac_models.Ledger.objects.get(id=self.data['ledgers'] - hashrate_average_sample - 1).timestamp) / 10
+			if self.data['blocks'] > 100:
+				self.data['difficulty'] = 10 * moac_models.Block.objects.get(id=self.data['blocks'] - 1).difficulty // hashrate_tera / 10
+				self.data['bigpools'] = moac_models.Address.objects.annotate(Count('block')).filter(block__count__gt=10000).count()
+				self.data['hashrate'] = 10 * moac_models.Block.objects.filter(id__gte=self.data['blocks'] - hashrate_average_sample).filter(id__lt=self.data['blocks']).aggregate(Sum('difficulty'))['difficulty__sum'] // hashrate_tera // (moac_models.Block.objects.get(id=self.data['blocks'] - 1).timestamp - moac_models.Block.objects.get(id=self.data['blocks'] - hashrate_average_sample - 1).timestamp) / 10
 			else:
 				self.data['difficulty'] = 0
 				self.data['bigpools'] = 0
@@ -88,15 +88,15 @@ class JsonJingtumLedger(models.Model):
 		while not done:
 			try:
 				response = common.WebAPI.get("query/ledger/{}".format(hash), url='http://state.jingtum.com/',timeout=90)
-				if response.status == 200:
-					result = json.loads(response.read().decode())
+				if response.ok:
+					result = response.json()
 					summary = result['data']['data']['summary']
 					parent_hash = summary['parent_hash']
 					ledger = cls(id=int(summary['ledger_index']),hash=hash,parent_hash=parent_hash,data=result)
 					ledger.save()
 					done = True
 				else:
-					out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+					out = sys.stdout.write("..!..http returned error status %s\n")
 					time.sleep(10 * random.randint(1,10))
 			except Exception as e:
 				out = sys.stderr.write("exception happend\n")
@@ -104,7 +104,7 @@ class JsonJingtumLedger(models.Model):
 				time.sleep(60 * random.randint(1,10))
 		return ledger
 
-class JsonMoacLedger(models.Model):
+class JsonMoacBlock(models.Model):
 	hash = models.CharField(max_length=66,unique=True,editable=False)
 	parent_hash = models.CharField(max_length=66,default='',unique=True,editable=False)
 	data = JSONField()
@@ -116,9 +116,9 @@ class JsonMoacLedger(models.Model):
 		return "%s: %s" % (self.id, self.hash)
 
 	def delete(self):
-		for l in moac_models.Ledger.objects.filter(id=self.id):
+		for l in moac_models.Block.objects.filter(id=self.id):
 			l.delete()
-		super(JsonMoacLedger,self).delete()
+		super(JsonMoacBlock,self).delete()
 
 	def sync_uncles(self):
 		if self.synced:
@@ -128,14 +128,14 @@ class JsonMoacLedger(models.Model):
 				sys.stdout.write("\t...trying %s/%s\n" % (self.id,index))
 				try:
 					response = common.WebAPI.get("uncle/{0}/{1}".format(self.id,index))
-					if response.status == 200:
-						result = json.loads(response.read().decode())
+					if response.ok:
+						result = response.json()
 						hash = result['hash']
-						uncle = JsonMoacUncle(hash=hash,ledger=self,data=result)
+						uncle = JsonMoacUncle(hash=hash,block=self,data=result)
 						uncle.save()
 						out = sys.stdout.write("... retrieved uncle for %s/%s\n" % (self.id,index))
 					else:
-						out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+						out = sys.stdout.write("..!..http returned error status\n")
 						return False
 				except Exception as e:
 					out = sys.stderr.write("... exception happend for %s/%s\n" % (self.id,index))
@@ -146,22 +146,22 @@ class JsonMoacLedger(models.Model):
 		#sys.stdout.write("\t...synced uncles\n")
 		return True
 
-	def proc_ledger(self,do_uncle=False, bypass_balance=False):
+	def proc_block(self,do_uncle=False, bypass_balance=False):
 		addresses = set()
 		ledger_new = False
 		try:
-			ledger = moac_models.Ledger.objects.get(hash=self.hash)
+			block = moac_models.Block.objects.get(hash=self.hash)
 			if do_uncle:
 				for uncle_hash in self.data['uncles']:
-					uncle,created = moac_models.Uncle.objects.get_or_create(hash=uncle_hash,ledger=ledger)
-					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,ledger=JsonMoacLedger.objects.get(hash=ledger.hash))
+					uncle,created = moac_models.Uncle.objects.get_or_create(hash=uncle_hash,block=block)
+					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,block=JsonMoacBlock.objects.get(hash=block.hash))
 					miner,created = moac_models.Address.objects.get_or_create(address=jmu.data['miner'])
 					if created:
-						if ledger.timestamp:
-							miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(ledger.timestamp))
+						if block.timestamp:
+							miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
 							miner.app_only = False
 							miner.save()
-						moac_tasks.address_determine_contract.delay(miner.id)
+						moac_tasks.address_determine_contract.delay(miner.pk)
 					if miner.app_only:
 						miner.app_only = False
 						miner.save()
@@ -169,7 +169,7 @@ class JsonMoacLedger(models.Model):
 					uncle.miner = miner
 					uncle.number = jmu.data['number']
 					uncle.save()
-		except moac_models.Ledger.DoesNotExist:
+		except moac_models.Block.DoesNotExist:
 			miner,created = moac_models.Address.objects.get_or_create(address=self.data['miner'])
 			addresses.add(miner)
 			timestamp=self.data['timestamp']
@@ -179,12 +179,12 @@ class JsonMoacLedger(models.Model):
 					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 					miner.app_only = False
 					miner.save()
-					moac_tasks.address_determine_contract.delay(miner.id)
+					moac_tasks.address_determine_contract.delay(miner.pk)
 				if miner.app_only:
 					miner.app_only = False
 					miner.save()
-				ledger = moac_models.Ledger(hash=self.hash, id=self.id, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
-				ledger.save()
+				block = moac_models.Block(hash=self.hash, id=self.id, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
+				block.save()
 			else:
 				if created:
 					miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
@@ -194,21 +194,24 @@ class JsonMoacLedger(models.Model):
 					miner.app_only = False
 					miner.save()
 				ledger_new = True
-				duration = int(timestamp - moac_models.Ledger.objects.get(id=self.id -1).timestamp)
+				duration = int(timestamp - moac_models.Block.objects.get(id=self.id -1).timestamp)
 				num_txs = len(self.data['transactions'])
 				tps = int(num_txs / duration)
-				ledger = moac_models.Ledger(hash=self.hash, id=self.id, num_txs=num_txs, tps=tps, duration=duration, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
-				ledger.save()
+				block = moac_models.Block(hash=self.hash, id=self.id, num_txs=num_txs, tps=tps, duration=duration, difficulty = self.data['difficulty'], nonce = self.data['nonce'], miner=miner, timestamp=timestamp)
+				block.save()
 				if self.data['transactions']:
 					sys.stdout.write('update transactions:\n\t...')
 					for txr in self.data['transactions']:
+						index = int(txr['transactionIndex'])
+						if index == 0:
+							continue
 						sys.stdout.write("%s, " % txr['transactionIndex'])
 						tx_from, created = moac_models.Address.objects.get_or_create(address=txr['from'])
 						if created:
 							tx_from.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 							tx_from.app_only = False
 							tx_from.save()
-							moac_tasks.address_determine_contract.delay(tx_from.id)
+							moac_tasks.address_determine_contract.delay(tx_from.pk)
 						if tx_from.app_only:
 							tx_from.app_only = False
 							tx_from.save()
@@ -219,27 +222,25 @@ class JsonMoacLedger(models.Model):
 								tx_to.created = timezone.make_aware(timezone.datetime.fromtimestamp(timestamp))
 								tx_to.app_only = False
 								tx_to.save()
-								moac_tasks.address_determine_contract.delay(tx_to.id)
+								moac_tasks.address_determine_contract.delay(tx_to.pk)
 							if tx_to.app_only:
 								tx_to.app_only = False
 								tx_to.save()
 							addresses.add(tx_to)
 						else:
 							tx_to = None
-						if txr['shardingFlag']:
-							sharding, created = moac_models.ShardingFlag.objects.get_or_create(flag=txr['shardingFlag'], id=int(txr['shardingFlag'],base=16))
-						transaction, created = moac_models.Transaction.objects.get_or_create(ledger=ledger,hash=txr['hash'],tx_from=tx_from, nonce=txr['nonce'], tx_to=tx_to, value=int(float(txr['value'])) / 1000000000, index=int(txr['transactionIndex']), sharding=sharding)
+						transaction, created = moac_models.Transaction.objects.get_or_create(block=block,hash=txr['hash'],tx_from=tx_from, nonce=txr['nonce'], tx_to=tx_to, value=int(float(txr['value'])) / 1000000000, index=index)
 						transaction.save()
 					sys.stdout.write('\n')
 				for uncle_hash in self.data['uncles']:
-					uncle,created = moac_models.Uncle.objects.get_or_create(hash=uncle_hash,ledger=ledger)
-					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,ledger=JsonMoacLedger.objects.get(hash=ledger.hash))
+					uncle,created = moac_models.Uncle.objects.get_or_create(hash=uncle_hash,block=block)
+					jmu = JsonMoacUncle.objects.get(hash=uncle_hash,block=JsonMoacBlock.objects.get(hash=block.hash))
 					miner,created = moac_models.Address.objects.get_or_create(address=jmu.data['miner'])
 					if created:
 						miner.created = timezone.make_aware(timezone.datetime.fromtimestamp(jmu.data['timestamp']))
 						miner.app_only = False
 						miner.save()
-						moac_tasks.address_determine_contract.delay(miner.id)
+						moac_tasks.address_determine_contract.delay(miner.pk)
 					if miner.app_only:
 						miner.app_only = False
 						miner.save()
@@ -257,10 +258,11 @@ class JsonMoacLedger(models.Model):
 					#a.flag_update_balance()
 				sys.stdout.write('\n')
 			if ledger_new:
-				jsl,created = JsonStat.objects.get_or_create(id=1,metric='ledger')
-				jsl.update()
-				jsc,created = JsonStat.objects.get_or_create(id=2,metric='coinmarket')
-				jsc.update()
+				pass
+			#	jsl,created = JsonStat.objects.get_or_create(id=1,metric='ledger')
+			#	jsl.update()
+			#	jsc,created = JsonStat.objects.get_or_create(id=2,metric='coinmarket')
+			#	jsc.update()
 			
 	@classmethod
 	def verify(cls,start=0):
@@ -302,8 +304,8 @@ class JsonMoacLedger(models.Model):
 		while not done:
 			try:
 				response = common.WebAPI.get("block/{0}".format(height))
-				if response.status == 200:
-					result = json.loads(response.read().decode())
+				if response.ok:
+					result = response.json()
 					hash = result['hash']
 					parent_hash = result['parentHash']
 					if height > 0 and last and parent_hash == last.hash:
@@ -320,7 +322,7 @@ class JsonMoacLedger(models.Model):
 							ledger = cls.objects.get(id=height-2)
 					done = True
 				else:
-					out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+					out = sys.stdout.write("..!..http returned error status\n")
 					time.sleep(random.randint(5,10))
 			except Exception as e:
 				out = sys.stderr.write("exception happend\n")
@@ -333,13 +335,13 @@ class JsonMoacUncle(models.Model):
 	hash = models.CharField(max_length=66,editable=False)
 	data = JSONField()
 	synced = models.BooleanField(default=False, editable=False)
-	ledger = models.ForeignKey(JsonMoacLedger, on_delete=models.CASCADE)
+	block = models.ForeignKey(JsonMoacBlock, on_delete=models.CASCADE)
 
 	class Meta:
-		ordering = ('ledger',)
-		unique_together = ('hash','ledger')
+		ordering = ('block',)
+		unique_together = ('hash','block')
 	def __str__(self):
-		return "%s: %s" % (self.ledger.id, self.hash)
+		return "%s: %s" % (self.block.id, self.hash)
 
 	def delete(self):
 		for u in moac_models.Uncle.objects.filter(hash=self.hash):
@@ -362,7 +364,7 @@ class JsonTokenLog(models.Model):
 	@classmethod
 	def sync(cls):
 		from_block = 0
-		last_block = JsonMoacLedger.objects.order_by('-id').first()
+		last_block = JsonMoacBlock.objects.order_by('-id').first()
 		last_jtl = cls.objects.order_by('-block_number').first()
 		if last_jtl:
 			from_block = last_jtl.block_number
@@ -371,15 +373,15 @@ class JsonTokenLog(models.Model):
 		print("\tgot tokenlog sync range block {} - {}".format(from_block, to_block))
 		try:
 			response = common.WebAPI.get("log/{0}/{1}".format(from_block,to_block),timeout=180)
-			if response.status == 200:
-				result = json.loads(response.read().decode())
+			if response.ok:
+				result = response.json()
 				print("\tapi got {} records".format(len(result)))
 				for item in result:
 					jtl, created = cls.objects.get_or_create(block_number=int(item['blockNumber'],base=16),tx_index=int(item['transactionIndex'],base=16),log_index=int(item['logIndex'],base=16),data=item)
 					if created:
 						jtl.update_token_log()
 			else:
-				out = sys.stdout.write("..!..http returned status %s\n" % response.status)
+				out = sys.stdout.write("..!..http returned error status\n")
 		except Exception as e:
 			out = sys.stderr.write("... exception happend for tokenlog sync")
 			print(e)
@@ -388,14 +390,14 @@ class JsonTokenLog(models.Model):
 	def update_token_log(self):
 		try:
 			if not self.synced:
-				block = moac_models.Ledger.objects.get(id=self.block_number)
+				block = moac_models.Block.objects.get(id=self.block_number)
 				transaction = moac_models.Transaction.objects.get(hash=self.data['transactionHash'])
 				tokenlog, created = moac_models.TokenLog.objects.get_or_create(block=block,transaction=transaction,index=self.log_index)
 				tokenlog_address, created = moac_models.Address.objects.get_or_create(address=self.data['address'])
 				if created:
 					tokenlog_address.created = timezone.make_aware(timezone.datetime.fromtimestamp(self.data['timestamp']))
 					tokenlog_address.save()
-					moac_tasks.address_determine_contract.delay(tokenlog_address.id)
+					moac_tasks.address_determine_contract.delay(tokenlog_address.pk)
 					moac_tasks.address_update_balance.delay(tokenlog_address.id)
 				tokenlog.address = tokenlog_address
 				if self.data['topics'][0] in EVENT_SIGNATURES.keys() and EVENT_SIGNATURES[self.data['topics'][0]]:
@@ -411,7 +413,7 @@ class JsonTokenLog(models.Model):
 								#print("\tapp_only wallet created")
 								wallet.created = timezone.make_aware(timezone.datetime.fromtimestamp(block.timestamp))
 								wallet.save()
-								moac_tasks.address_determine_contract.delay(wallet.id)
+								moac_tasks.address_determine_contract.delay(wallet.pk)
 							tokenlog.wallets.add(wallet)
 						else:
 							print("\t...!... check address {}".format(address))
@@ -423,16 +425,16 @@ class JsonTokenLog(models.Model):
 def pre_save_ledger_jingtum(sender, instance, **kwargs):
 	pass
 
-@receiver(pre_save, sender=JsonMoacLedger)
+@receiver(pre_save, sender=JsonMoacBlock)
 def pre_save_ledger_moac(sender, instance, **kwargs):
 	pass
 
-@receiver(post_save, sender=JsonMoacLedger)
+@receiver(post_save, sender=JsonMoacBlock)
 def post_save_ledger_moac(sender, instance, created, **kwargs):
 	if created:
 		# retrieve JsonMoacUncles
 		instance.sync_uncles()
+		#instance.proc_block()
 		# generate ledgers, transactions and uncles
-		#instance.proc_ledger(bypass_balance=True)
-		instance.proc_ledger()
+		instance.proc_block(bypass_balance=True)
 
